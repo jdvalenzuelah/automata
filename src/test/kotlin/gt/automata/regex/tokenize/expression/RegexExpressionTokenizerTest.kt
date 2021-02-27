@@ -21,7 +21,7 @@ class RegexExpressionTokenizerTest {
     @Test
     fun `should tokenize regex expression with union`() {
         val expression = "a|b"
-        val expected = listOf(Character("a"), Operator.Union, Character("b")).toTypedArray()
+        val expected = listOf(Character("a"), Operator.Or, Character("b")).toTypedArray()
         assertArrayEquals(expected, tokenizer(expression).toTypedArray())
     }
 
@@ -48,7 +48,7 @@ class RegexExpressionTokenizerTest {
         val expected = listOf(
             Grouping.OpenParenthesis,
             Character("b"),
-            Operator.Union,
+            Operator.Or,
             Character("b"),
             Grouping.CloseParenthesis,
             Operator.Closure,
@@ -59,7 +59,7 @@ class RegexExpressionTokenizerTest {
             Character("b"),
             Grouping.OpenParenthesis,
             Character("a"),
-            Operator.Union,
+            Operator.Or,
             Character("b"),
             Grouping.CloseParenthesis,
             Operator.Closure,

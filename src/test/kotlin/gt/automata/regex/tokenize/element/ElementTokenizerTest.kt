@@ -3,9 +3,6 @@ package gt.automata.regex.tokenize.element
 import gt.automata.regex.element.Character
 import gt.automata.regex.element.Grouping
 import gt.automata.regex.element.Operator
-import gt.automata.regex.tokenize.element.CharacterTokenizer
-import gt.automata.regex.tokenize.element.GroupingTokenizer
-import gt.automata.regex.tokenize.element.OperatorTokenizer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 
@@ -18,7 +15,7 @@ class ElementTokenizerTest {
 
     @Test
     fun `should parse + to union`() {
-        assertEquals(Operator.Union, OperatorTokenizer("|"))
+        assertEquals(Operator.Or, OperatorTokenizer("|"))
     }
 
     @Test

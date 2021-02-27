@@ -11,7 +11,7 @@ sealed class Operator(
 
     object Concatenation : Operator("", 2)
 
-    object Union : Operator("|", 1)
+    object Or : Operator("|", 1)
 
 }
 
