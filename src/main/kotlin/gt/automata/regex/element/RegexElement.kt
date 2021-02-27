@@ -1,11 +1,15 @@
 package gt.automata.regex.element
 
+// TODO: Define epsilon
+
 sealed class RegexElement
 
 sealed class Operator(
     val id: String,
     val precedence: Int
 ) : RegexElement() {
+
+    override fun toString(): String = id
 
     object Closure : Operator("*", 3)
 
@@ -17,6 +21,8 @@ sealed class Operator(
 
 sealed class Grouping(val id: String) : RegexElement() {
 
+    override fun toString(): String = id
+
     object OpenParenthesis : Grouping("(")
 
     object CloseParenthesis : Grouping(")")
@@ -24,4 +30,6 @@ sealed class Grouping(val id: String) : RegexElement() {
 }
 
 
-data class Character(val char: String) : RegexElement()
+data class Character(val char: String) : RegexElement() {
+    override fun toString(): String = char
+}
