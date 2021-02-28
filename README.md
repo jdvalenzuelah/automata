@@ -1,5 +1,7 @@
 # Automata
 
+[![Build Status](https://travis-ci.com/jdvalenzuelah/automata.svg?branch=master)](https://travis-ci.com/jdvalenzuelah/automata)
+
 ## Docs
 
 ## Architecture

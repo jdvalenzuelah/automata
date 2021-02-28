@@ -32,7 +32,6 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jUnitVersion")
 }
 
-//TODO: add tests to CI
 tasks.test {
     useJUnitPlatform {
         includeEngines("junit-jupiter","spek2")
