@@ -36,7 +36,8 @@ class NFABuilder<S, I> {
 
     @NFADsl
     class TransitionTableBuilder<S, I> {
-        private val transitionTable: MutableTransitionTable<S, I> = mutableMapOf()
+        private data class Transition<S, I>(val from: IState<S>,val transition: Pair<I, IState<S>>)
+        private val transitions = mutableListOf<Transition<S, I>>()
 
         @JvmName("simpleBy")
         infix fun Pair<S, S>.by(i: I) {
@@ -46,15 +47,17 @@ class NFABuilder<S, I> {
         infix fun Pair<IState<S>, IState<S>>.by(i: I) {
             val fromState = this@by.first
             val toState = this@by.second
-            val currentTransitions = transitionTable[fromState]
-
-            if(currentTransitions == null)
-                transitionTable[fromState] = mutableMapOf(i to mutableListOf(toState))
-            else
-                currentTransitions[i]?.add(toState)
+            transitions.add(Transition(fromState, i to toState))
         }
 
-        fun build(): TransitionTable<S, I> = transitionTable
+        fun build(): TransitionTable<S, I> = transitions
+            .groupBy { it.from }
+            .map { (fromState, transitionList) ->
+                val groupedTransitions = transitionList.groupBy { it.transition.first }
+                    .map { (action, transition) -> action to transition.map { it.transition.second } }
+                fromState to groupedTransitions.toMap()
+            }
+            .toMap()
 
     }
 
