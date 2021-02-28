@@ -66,7 +66,23 @@ class Thomptson : ThompsonConstruction<Int, String> {
     }
 
     override fun concat(nfa1: INFA<Int, String>, nfa2: INFA<Int, String>): INFA<Int, String> {
-        TODO()
+
+        val newTransitionTable: TransitionTable<Int, String> = nfa1.transitionTable + nfa2.transitionTable.map { (fromState, transitions) ->
+            val newFromState = if(fromState == nfa2.initialState) nfa1.finalStates else listOf(fromState)
+            val newTransitions = transitions.map { (action, toStates) ->
+                val newToStates = toStates.map { toState ->
+                    if(toState == nfa2.initialState) nfa1.finalStates else listOf(toState)
+                }
+                action to newToStates.flatten()
+            }.toMap()
+
+            newFromState.map { it to newTransitions }
+        }.flatten()
+            .toMap()
+
+        val combinedStates = nfa1.states + nfa2.states.filter { it != nfa2.initialState }
+
+        return NFA(combinedStates, nfa1.initialState, nfa2.finalStates, newTransitionTable)
     }
 
     override fun closure(nfa1: INFA<Int, String>): INFA<Int, String> {
