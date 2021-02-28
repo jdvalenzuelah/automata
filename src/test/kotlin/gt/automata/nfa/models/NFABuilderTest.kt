@@ -12,8 +12,8 @@ class NFABuilderTest {
             initialState = State("A"),
             finalStates = listOf(State("C")),
             transitionTable = mapOf(
-                State("A") to mapOf("1" to State("B")),
-                State("B") to mapOf("2" to State("C"))
+                State("A") to mapOf("1" to listOf(State("B"), State("A"))),
+                State("B") to mapOf("2" to listOf(State("C")))
             )
         )
 
@@ -30,6 +30,7 @@ class NFABuilderTest {
 
             transitions {
                 "A" to "B" by "1"
+                "A" to "A" by "1"
                 "B" to "C" by "2"
             }
         }

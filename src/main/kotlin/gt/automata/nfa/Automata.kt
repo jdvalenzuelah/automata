@@ -8,7 +8,7 @@ package gt.automata.nfa
  * - So initial state
  * - F set of final states (subset of A)
  */
-interface INFA<S, I> {
+interface Automata<S, I> {
 
     val states: Collection<IState<S>> // S
 
@@ -16,6 +16,6 @@ interface INFA<S, I> {
 
     val finalStates: Collection<IState<S>> // F
 
-    fun move(state: IState<S>, char: I): IState<S>? // Transition function
+    fun move(state: IState<S>, char: I): Collection<IState<S>>? // Transition function
 
 }
