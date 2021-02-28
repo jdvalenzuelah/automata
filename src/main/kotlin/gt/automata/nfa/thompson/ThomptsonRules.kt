@@ -1,11 +1,9 @@
 package gt.automata.nfa.thompson
 
-import gt.automata.nfa.Automata
-import gt.automata.nfa.IState
 import gt.automata.nfa.epsilon
 import gt.automata.nfa.models.*
 
-class Thomptson : ThompsonConstruction<Int, String> {
+class ThomptsonRules : ThompsonConstruction<Int, String> {
 
     private var idCounter: Int = 0
 

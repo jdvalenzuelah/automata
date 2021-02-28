@@ -1,6 +1,6 @@
 package gt.automata.nfa.models
 
-import gt.automata.nfa.IState
+import gt.automata.IState
 
 @DslMarker
 annotation class NFADsl
@@ -36,7 +36,7 @@ class NFABuilder<S, I> {
 
     @NFADsl
     class TransitionTableBuilder<S, I> {
-        private data class Transition<S, I>(val from: IState<S>,val transition: Pair<I, IState<S>>)
+        private data class Transition<S, I>(val from: IState<S>, val transition: Pair<I, IState<S>>)
         private val transitions = mutableListOf<Transition<S, I>>()
 
         @JvmName("simpleBy")

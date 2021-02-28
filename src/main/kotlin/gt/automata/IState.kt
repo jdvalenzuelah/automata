@@ -1,4 +1,4 @@
-package gt.automata.nfa
+package gt.automata
 
 interface IState<T> {
     val name: T

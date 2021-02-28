@@ -1,7 +1,7 @@
 package gt.automata.nfa.models
 
-import gt.automata.nfa.IState
-import gt.automata.nfa.Automata
+import gt.automata.IState
+import gt.automata.Automata
 
 interface INFA<S, I> : Automata<S, I> {
     val transitionTable: TransitionTable<S, I>

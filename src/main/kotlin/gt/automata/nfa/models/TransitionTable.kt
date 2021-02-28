@@ -1,6 +1,6 @@
 package gt.automata.nfa.models
 
-import gt.automata.nfa.IState
+import gt.automata.IState
 
 typealias Transitions<S, I> = Map<I, Collection<IState<S>>>
 typealias MutableTransitions<S, I> = MutableMap<I, MutableCollection<IState<S>>>

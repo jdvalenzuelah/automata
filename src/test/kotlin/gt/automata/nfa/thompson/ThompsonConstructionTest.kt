@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 
 class ThompsonConstructionTest {
 
-    private val sut = Thomptson()
+    private val sut = ThomptsonRules()
 
     @Test
     fun `should build a nfa from a symbol`() {
