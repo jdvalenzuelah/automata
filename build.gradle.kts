@@ -1,14 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val coroutineVersion = "1.3.9"
-val logbackVersion = "1.2.3"
-
 val jUnitVersion = "5.6.2"
-val spekVersion = "2.0.12"
-val kluentVersion = "1.51"
-val easyRandomVersion = "4.2.0"
-val mockKVersion = "1.10.0"
 
 plugins {
     application
@@ -39,7 +32,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jUnitVersion")
 }
 
-
+//TODO: add tests to CI
 tasks.test {
     useJUnitPlatform {
         includeEngines("junit-jupiter","spek2")
