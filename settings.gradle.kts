@@ -1,2 +1,2 @@
-rootProject.name = "kotlin-gradle-boilerplate"
+rootProject.name = "kotlin-based-compiler"
 

@@ -29,3 +29,18 @@ $ cd ${YOUR_PROJECT_NAME}
 $ ./gradlew clean build
 ```
 
+### To generate a graph from a regex expresion
+Extract the dist
+```sh
+$ tar -xf build/distributions/kotlin-based-compiler-1.0.0.tar
+```
+run passing regex and destination path
+```sh
+$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e 'b*' -o ~/Desktop/closure.png
+```
+
+closure.png:
+
+![closure graph](./.examples/closure.png)
+
+

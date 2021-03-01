@@ -1,4 +1,4 @@
-package graphing
+package gt.graphing
 
 import gt.automata.nfa.models.INFA
 import guru.nidi.graphviz.attribute.Label
@@ -12,7 +12,7 @@ class NFAGraph<T, U> {
 
         return graph(directed = true) {
             graph[Rank.dir(Rank.RankDir.LEFT_TO_RIGHT)]
-            
+
             nfa.transitionTable.forEach { (fromState, transitions) ->
                 transitions.forEach { (action, toStates) ->
                     toStates.forEach { toState ->

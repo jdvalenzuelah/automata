@@ -2,6 +2,8 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val jUnitVersion = "5.6.2"
+val kgraphvizVersion = "0.18.0"
+val kotlinArgParserVersion = "2.0.7"
 
 plugins {
     application
@@ -18,14 +20,16 @@ group = "id.jasoet.boilerplate"
 version = "1.0.0"
 
 application {
-    mainClassName = "id.jasoet.boilerplate.Application" //TODO
+    mainClassName = "gt.graphing.MainKt"
 }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    implementation("guru.nidi:graphviz-kotlin:0.18.0")
+    implementation("guru.nidi:graphviz-kotlin:$kgraphvizVersion")
+
+    implementation("com.xenomachina:kotlin-argparser:$kotlinArgParserVersion")
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))
