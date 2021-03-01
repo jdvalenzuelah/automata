@@ -1,7 +1,5 @@
 package gt.automata.regex.element
 
-// TODO: Define epsilon
-
 sealed class RegexElement
 
 sealed class Operator(

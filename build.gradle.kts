@@ -25,6 +25,8 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
+    implementation("guru.nidi:graphviz-kotlin:0.18.0")
+
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))
 

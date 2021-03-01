@@ -33,6 +33,7 @@ class RegexExpressionTokenizer(
         regex.forEach {
             val currentElement = getRegexElement(it.toString())
 
+            // TODO: Fix concat detection
             if(lastElement.isCharacter() && currentElement.isCharacter()) { // Two characters in a row, infers concatenation
                 result.add(Operator.Concatenation)
             }
