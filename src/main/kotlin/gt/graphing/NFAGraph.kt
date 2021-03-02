@@ -1,6 +1,6 @@
 package gt.graphing
 
-import gt.automata.nfa.models.NonDeterministicFiniteAutomata
+import gt.automata.nfa.NonDeterministicFiniteAutomata
 import guru.nidi.graphviz.attribute.Label
 import guru.nidi.graphviz.attribute.Rank
 import guru.nidi.graphviz.engine.Graphviz

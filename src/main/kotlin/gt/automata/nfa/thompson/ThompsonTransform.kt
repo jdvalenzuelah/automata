@@ -1,7 +1,7 @@
 package gt.automata.nfa.thompson
 
 import gt.automata.nfa.RegexToNFA
-import gt.automata.nfa.models.NonDeterministicFiniteAutomata
+import gt.automata.nfa.NonDeterministicFiniteAutomata
 import gt.automata.regex.RegexExpression
 import gt.automata.regex.element.Character
 import gt.automata.regex.element.Grouping

@@ -1,11 +1,8 @@
 package gt.automata.nfa.models
 
 import gt.automata.IState
-import gt.automata.Automata
+import gt.automata.nfa.NonDeterministicFiniteAutomata
 
-interface NonDeterministicFiniteAutomata<S, I> : Automata<S, I, Collection<IState<S>>> {
-    val transitionTable: TransitionTable<S, I>
-}
 
 data class NFA<S, I>(
     override val states: Collection<IState<S>>,

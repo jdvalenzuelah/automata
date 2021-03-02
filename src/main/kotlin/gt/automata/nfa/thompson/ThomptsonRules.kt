@@ -1,6 +1,7 @@
 package gt.automata.nfa.thompson
 
 import gt.automata.nfa.epsilon
+import gt.automata.nfa.NonDeterministicFiniteAutomata
 import gt.automata.nfa.models.*
 
 class ThomptsonRules : ThompsonConstruction<Int, String> {

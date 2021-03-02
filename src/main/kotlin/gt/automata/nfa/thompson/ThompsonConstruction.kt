@@ -1,6 +1,6 @@
 package gt.automata.nfa.thompson
 
-import gt.automata.nfa.models.NonDeterministicFiniteAutomata
+import gt.automata.nfa.NonDeterministicFiniteAutomata
 
 interface ThompsonConstruction<S, I> {
 
