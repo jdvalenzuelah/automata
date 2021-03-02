@@ -9,7 +9,7 @@ import guru.nidi.graphviz.toGraphviz
 
 class NFAGraph<T, U> {
     fun graphFromNfa(nfa: INFA<T, U>): Graphviz {
-
+        // TODO: add double circle for final state `Shape.DOUBLE_CIRCLE`
         return graph(directed = true) {
             graph[Rank.dir(Rank.RankDir.LEFT_TO_RIGHT)]
 

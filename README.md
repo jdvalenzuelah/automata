@@ -36,11 +36,11 @@ $ tar -xf build/distributions/kotlin-based-compiler-1.0.0.tar
 ```
 run passing regex and destination path
 ```sh
-$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e 'b*' -o ~/Desktop/closure.png
+$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex.png
 ```
 
-closure.png:
+regex.png:
 
-![closure graph](./.examples/closure.png)
+![closure graph](./.examples/regex.png)
 
 
