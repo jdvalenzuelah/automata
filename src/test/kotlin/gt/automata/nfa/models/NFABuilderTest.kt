@@ -1,5 +1,6 @@
 package gt.automata.nfa.models
 
+import gt.automata.models.State
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 

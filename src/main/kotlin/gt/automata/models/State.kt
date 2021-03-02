@@ -1,4 +1,4 @@
-package gt.automata.nfa.models
+package gt.automata.models
 
 import gt.automata.IState
 

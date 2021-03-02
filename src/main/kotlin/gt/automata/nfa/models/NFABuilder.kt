@@ -1,6 +1,7 @@
 package gt.automata.nfa.models
 
 import gt.automata.IState
+import gt.automata.models.State
 
 @DslMarker
 annotation class NFADsl
