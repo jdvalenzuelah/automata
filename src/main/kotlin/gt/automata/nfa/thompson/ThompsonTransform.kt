@@ -1,7 +1,7 @@
 package gt.automata.nfa.thompson
 
 import gt.automata.nfa.RegexToNFA
-import gt.automata.nfa.models.INFA
+import gt.automata.nfa.models.NonDeterministicFiniteAutomata
 import gt.automata.regex.RegexExpression
 import gt.automata.regex.element.Character
 import gt.automata.regex.element.Grouping
@@ -14,9 +14,9 @@ class ThompsonTransform(
 ) : RegexToNFA<Int, String>  {
 
 
-    override fun invoke(regex: RegexExpression): INFA<Int, String> {
+    override fun invoke(regex: RegexExpression): NonDeterministicFiniteAutomata<Int, String> {
         val postfixExpression = regexToPostFix(regex)
-        val operationStack = ArrayDeque<INFA<Int, String>>()
+        val operationStack = ArrayDeque<NonDeterministicFiniteAutomata<Int, String>>()
 
         postfixExpression.forEach { el ->
             when(el) {

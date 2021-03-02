@@ -3,7 +3,7 @@ package gt.automata.nfa.models
 import gt.automata.IState
 import gt.automata.Automata
 
-interface INFA<S, I> : Automata<S, I> {
+interface NonDeterministicFiniteAutomata<S, I> : Automata<S, I, Collection<IState<S>>> {
     val transitionTable: TransitionTable<S, I>
 }
 
@@ -12,7 +12,7 @@ data class NFA<S, I>(
     override val initialState: IState<S>,
     override val finalStates: Collection<IState<S>>,
     override val transitionTable: TransitionTable<S, I>
-): INFA<S, I> {
+): NonDeterministicFiniteAutomata<S, I> {
 
     init {
         require(initialState in states) { "Initial state must be part of final state" }

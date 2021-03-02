@@ -12,9 +12,9 @@ class ThomptsonRules : ThompsonConstruction<Int, String> {
         return idCounter
     }
 
-    override fun empty(): INFA<Int, String> = symbol(epsilon)
+    override fun empty(): NonDeterministicFiniteAutomata<Int, String> = symbol(epsilon)
 
-    override fun symbol(s: String): INFA<Int, String> {
+    override fun symbol(s: String): NonDeterministicFiniteAutomata<Int, String> {
         val from = getId()
         val to = getId()
         return nfa {
@@ -30,7 +30,7 @@ class ThomptsonRules : ThompsonConstruction<Int, String> {
         }
     }
 
-    override fun or(nfa1: INFA<Int, String>, nfa2: INFA<Int, String>): INFA<Int, String> {
+    override fun or(nfa1: NonDeterministicFiniteAutomata<Int, String>, nfa2: NonDeterministicFiniteAutomata<Int, String>): NonDeterministicFiniteAutomata<Int, String> {
         val initial = getId()
         val final = getId()
 
@@ -63,7 +63,7 @@ class ThomptsonRules : ThompsonConstruction<Int, String> {
 
     }
 
-    override fun concat(nfa1: INFA<Int, String>, nfa2: INFA<Int, String>): INFA<Int, String> {
+    override fun concat(nfa1: NonDeterministicFiniteAutomata<Int, String>, nfa2: NonDeterministicFiniteAutomata<Int, String>): NonDeterministicFiniteAutomata<Int, String> {
 
         val newTransitionTable: TransitionTable<Int, String> = nfa1.transitionTable + nfa2.transitionTable.map { (fromState, transitions) ->
             val newFromState = if(fromState == nfa2.initialState) nfa1.finalStates else listOf(fromState)
@@ -83,7 +83,7 @@ class ThomptsonRules : ThompsonConstruction<Int, String> {
         return NFA(combinedStates, nfa1.initialState, nfa2.finalStates, newTransitionTable)
     }
 
-    override fun closure(nfa1: INFA<Int, String>): INFA<Int, String> {
+    override fun closure(nfa1: NonDeterministicFiniteAutomata<Int, String>): NonDeterministicFiniteAutomata<Int, String> {
         val initial = getId()
         val final = getId()
 
