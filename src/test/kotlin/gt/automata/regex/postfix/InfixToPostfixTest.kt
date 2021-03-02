@@ -52,4 +52,35 @@ class InfixToPostfixTest {
 
     }
 
+    @Test
+    fun `should convert to postfix regex that contains all operations`() {
+        //a(a|b)*b
+        val infixRegex = listOf(
+            Character("a"),
+            Operator.Concatenation,
+            Grouping.OpenParenthesis,
+            Character("a"),
+            Operator.Or,
+            Character("b"),
+            Grouping.CloseParenthesis,
+            Operator.Closure,
+            Operator.Concatenation,
+            Character("b")
+
+        )
+
+        val expectedPostfixRegex = listOf(
+            Character("a"),
+            Character("a"),
+            Character("b"),
+            Operator.Or,
+            Operator.Closure,
+            Operator.Concatenation,
+            Character("b"),
+            Operator.Concatenation
+        )
+
+        Assertions.assertArrayEquals(expectedPostfixRegex.toTypedArray(), RegexToPostfix(infixRegex).toTypedArray())
+    }
+
 }
