@@ -34,7 +34,7 @@ fun main(args: Array<String>): Unit = mainBody {
     val tokenizedRegex = regexTokenizer(args.regex)
     val generatedNfa = nfaGenerator(tokenizedRegex)
 
-    NFAGraph<Int, String>().graphFromNfa(generatedNfa)
+    AutomataGraph<Int, String>().graphFromNfa(generatedNfa)
         .render(Format.PNG)
         .toFile(File(args.desPath.ensureEndsWith(".png")))
 }
