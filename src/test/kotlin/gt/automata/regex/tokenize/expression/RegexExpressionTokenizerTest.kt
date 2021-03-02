@@ -42,31 +42,24 @@ class RegexExpressionTokenizerTest {
     }
 
     @Test
-    fun `should tokenize regex with all operation with concatenation`() {
-        val expression = "(b|b)*abb(a|b)*"
+    fun `should tokenize regex with all operations`() {
+        val expression = "a(a|b)*b"
 
         val expected = listOf(
-            Grouping.OpenParenthesis,
-            Character("b"),
-            Operator.Or,
-            Character("b"),
-            Grouping.CloseParenthesis,
-            Operator.Closure,
             Character("a"),
             Operator.Concatenation,
-            Character("b"),
-            Operator.Concatenation,
-            Character("b"),
             Grouping.OpenParenthesis,
             Character("a"),
             Operator.Or,
             Character("b"),
             Grouping.CloseParenthesis,
             Operator.Closure,
+            Operator.Concatenation,
+            Character("b")
+
         )
             .toTypedArray()
 
-        println()
         assertArrayEquals(expected, tokenizer(expression).toTypedArray())
     }
 

@@ -26,6 +26,14 @@ class RegexExpressionTokenizer(
 
     }
 
+    private fun shouldAddConcatenation(current: RegexElement, previous: RegexElement?): Boolean {
+        return when(current) {
+            is Character -> previous.isCharacter() || previous == Grouping.CloseParenthesis || previous == Operator.Closure
+            Grouping.OpenParenthesis -> previous.isCharacter() || previous == Operator.Closure
+            else -> false
+        }
+    }
+
     override fun invoke(regex: String): RegexExpression {
         val result = mutableListOf<RegexElement>()
         var lastElement: RegexElement? = null
@@ -33,8 +41,7 @@ class RegexExpressionTokenizer(
         regex.forEach {
             val currentElement = getRegexElement(it.toString())
 
-            // TODO: Fix concat detection
-            if(lastElement.isCharacter() && currentElement.isCharacter()) { // Two characters in a row, infers concatenation
+            if(shouldAddConcatenation(currentElement, lastElement)) {
                 result.add(Operator.Concatenation)
             }
 
