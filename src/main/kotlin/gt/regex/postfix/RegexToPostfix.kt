@@ -1,10 +1,10 @@
-package gt.automata.regex.postfix
+package gt.regex.postfix
 
-import gt.automata.regex.RegexExpression
-import gt.automata.regex.element.Character
-import gt.automata.regex.element.Grouping
-import gt.automata.regex.element.Operator
-import gt.automata.regex.element.RegexElement
+import gt.regex.RegexExpression
+import gt.regex.element.Character
+import gt.regex.element.Grouping
+import gt.regex.element.Operator
+import gt.regex.element.RegexElement
 import java.lang.IllegalStateException
 import kotlin.jvm.Throws
 

@@ -1,4 +1,4 @@
-package gt.automata.regex.element
+package gt.regex.element
 
 sealed class RegexElement
 

@@ -2,11 +2,11 @@ package gt.automata.nfa.thompson
 
 import gt.automata.nfa.RegexToNFA
 import gt.automata.nfa.NonDeterministicFiniteAutomata
-import gt.automata.regex.RegexExpression
-import gt.automata.regex.element.Character
-import gt.automata.regex.element.Grouping
-import gt.automata.regex.element.Operator
-import gt.automata.regex.postfix.InfixToPostfix
+import gt.regex.RegexExpression
+import gt.regex.element.Character
+import gt.regex.element.Grouping
+import gt.regex.element.Operator
+import gt.regex.postfix.InfixToPostfix
 
 class ThompsonTransform(
     private val regexToPostFix: InfixToPostfix,

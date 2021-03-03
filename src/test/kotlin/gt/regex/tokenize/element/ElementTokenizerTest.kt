@@ -1,8 +1,8 @@
-package gt.automata.regex.tokenize.element
+package gt.regex.tokenize.element
 
-import gt.automata.regex.element.Character
-import gt.automata.regex.element.Grouping
-import gt.automata.regex.element.Operator
+import gt.regex.element.Character
+import gt.regex.element.Grouping
+import gt.regex.element.Operator
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 

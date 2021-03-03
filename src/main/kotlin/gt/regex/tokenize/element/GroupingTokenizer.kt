@@ -1,6 +1,6 @@
-package gt.automata.regex.tokenize.element
+package gt.regex.tokenize.element
 
-import gt.automata.regex.element.Grouping
+import gt.regex.element.Grouping
 
 internal object GroupingTokenizer : TokenizeRegexElement<Grouping> {
 

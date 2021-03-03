@@ -1,9 +1,9 @@
-package gt.automata.regex.tokenize.expression
+package gt.regex.tokenize.expression
 
-import gt.automata.regex.element.Character
-import gt.automata.regex.element.Grouping
-import gt.automata.regex.element.Operator
-import gt.automata.regex.tokenize.configuration.TokenizerConfig
+import gt.regex.element.Character
+import gt.regex.element.Grouping
+import gt.regex.element.Operator
+import gt.regex.tokenize.configuration.TokenizerConfig
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

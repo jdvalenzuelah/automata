@@ -3,7 +3,7 @@ package gt.graphing
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.mainBody
 import gt.automata.nfa.thompson.configuration.ThomptsonTransformConfig
-import gt.automata.regex.tokenize.configuration.TokenizerConfig
+import gt.regex.tokenize.configuration.TokenizerConfig
 import guru.nidi.graphviz.engine.Format
 import java.io.File
 

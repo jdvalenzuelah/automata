@@ -1,6 +1,6 @@
-package gt.automata.regex.tokenize.element
+package gt.regex.tokenize.element
 
-import gt.automata.regex.element.Operator
+import gt.regex.element.Operator
 
 internal object OperatorTokenizer : TokenizeRegexElement<Operator> {
 

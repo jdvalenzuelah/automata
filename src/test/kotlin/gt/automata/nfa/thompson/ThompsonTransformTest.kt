@@ -3,10 +3,10 @@ package gt.automata.nfa.thompson
 import gt.automata.nfa.epsilon
 import gt.automata.nfa.models.nfa
 import gt.automata.nfa.thompson.configuration.ThomptsonTransformConfig
-import gt.automata.regex.element.Character
-import gt.automata.regex.element.Grouping
-import gt.automata.regex.element.Operator
-import gt.automata.regex.postfix.RegexToPostfix
+import gt.regex.element.Character
+import gt.regex.element.Grouping
+import gt.regex.element.Operator
+import gt.regex.postfix.RegexToPostfix
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
