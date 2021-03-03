@@ -1,5 +1,5 @@
-package gt.automata.nfa
+package gt.regex
 
-import gt.regex.RegexExpression
+import gt.automata.nfa.NonDeterministicFiniteAutomata
 
 fun interface RegexToNFA<T, U> : (RegexExpression) -> NonDeterministicFiniteAutomata<T, U>

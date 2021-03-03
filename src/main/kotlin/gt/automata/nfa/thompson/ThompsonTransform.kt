@@ -1,6 +1,6 @@
 package gt.automata.nfa.thompson
 
-import gt.automata.nfa.RegexToNFA
+import gt.regex.RegexToNFA
 import gt.automata.nfa.NonDeterministicFiniteAutomata
 import gt.regex.RegexExpression
 import gt.regex.element.Character
@@ -11,7 +11,7 @@ import gt.regex.postfix.InfixToPostfix
 class ThompsonTransform(
     private val regexToPostFix: InfixToPostfix,
     private val thomptsonRules: ThomptsonRules
-) : RegexToNFA<Int, String>  {
+) : RegexToNFA<Int, String> {
 
 
     override fun invoke(regex: RegexExpression): NonDeterministicFiniteAutomata<Int, String> {
