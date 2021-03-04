@@ -63,5 +63,28 @@ class RegexExpressionTokenizerTest {
         assertArrayEquals(expected, tokenizer(expression).toTypedArray())
     }
 
+    @Test
+    fun `should add concat between 2 parenthesis groups`() {
+        val expression = "(a|b)(c|d)"
+
+        val expected = listOf(
+            Grouping.OpenParenthesis,
+            Character("a"),
+            Operator.Or,
+            Character("b"),
+            Grouping.CloseParenthesis,
+            Operator.Concatenation,
+            Grouping.OpenParenthesis,
+            Character("c"),
+            Operator.Or,
+            Character("d"),
+            Grouping.CloseParenthesis,
+
+            )
+            .toTypedArray()
+
+        assertArrayEquals(expected, tokenizer(expression).toTypedArray())
+    }
+
 
 }
