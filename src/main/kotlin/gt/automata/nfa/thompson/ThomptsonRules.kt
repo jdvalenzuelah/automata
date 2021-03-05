@@ -4,7 +4,9 @@ import gt.automata.models.State
 import gt.automata.nfa.epsilon
 import gt.automata.nfa.NonDeterministicFiniteAutomata
 import gt.automata.nfa.models.*
+import kotlin.random.Random
 
+// TODO: Abstract common operations to ease transition tables refactor
 class ThomptsonRules : ThompsonConstruction<Int, String> {
 
     private var idCounter: Int = 0
@@ -118,5 +120,27 @@ class ThomptsonRules : ThompsonConstruction<Int, String> {
 
     }
 
+    override fun positiveClosure(nfa1: NonDeterministicFiniteAutomata<Int, String>): NonDeterministicFiniteAutomata<Int, String> {
+        // rr*
+        val nfaClosure = closure(nfa1)
+
+        // TODO: Refactor this
+        val newStates = nfa1.states.map { it to State(getId()) }.toMap()
+        val newTransitionTable : TransitionTable<Int, String> = nfa1.transitionTable
+            .map { (state, trans) ->
+                val newState = newStates[state]!!
+                val newTransitions = trans.mapValues { it.value.mapNotNull { s -> newStates[s] } }
+                newState to newTransitions
+            }.toMap()
+        val newNfa = NFA(newStates.map { it.value }, newStates[nfa1.initialState]!!,
+            nfa1.finalStates.mapNotNull { newStates[it] }, newTransitionTable)
+
+        return concat(newNfa, nfaClosure)
+    }
+
+    override fun zeroOrOne(nfa1: NonDeterministicFiniteAutomata<Int, String>): NonDeterministicFiniteAutomata<Int, String> {
+        // r|epsilon
+        return or(nfa1, empty())
+    }
 
 }

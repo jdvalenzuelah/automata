@@ -29,7 +29,7 @@ class RegexExpressionTokenizer(
     private fun shouldAddConcatenation(current: RegexElement, previous: RegexElement?): Boolean {
         return when(current) {
             is Character -> previous.isCharacter() || previous == Grouping.CloseParenthesis || previous == Operator.Closure
-            Grouping.OpenParenthesis -> previous.isCharacter() || previous == Operator.Closure || previous == Grouping.CloseParenthesis
+            Grouping.OpenParenthesis -> previous.isCharacter() || previous in listOf(Operator.Closure, Operator.PositiveClosure, Operator.ZeroOrOne, Grouping.CloseParenthesis)
             else -> false
         }
     }

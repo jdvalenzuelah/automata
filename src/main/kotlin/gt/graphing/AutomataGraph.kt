@@ -9,6 +9,7 @@ import guru.nidi.graphviz.engine.Graphviz
 import guru.nidi.graphviz.graph
 import guru.nidi.graphviz.toGraphviz
 
+// TODO: Refactor transition table to avoid so many loops
 class AutomataGraph<T, U> {
 
     private data class Transitions<S, L>(val from: S, val to: S, val by: L)

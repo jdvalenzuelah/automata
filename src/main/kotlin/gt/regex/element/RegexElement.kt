@@ -11,6 +11,10 @@ sealed class Operator(
 
     object Closure : Operator("*", 3)
 
+    object PositiveClosure : Operator("+", 3)
+
+    object ZeroOrOne : Operator("?", 3)
+
     object Concatenation : Operator("", 2)
 
     object Or : Operator("|", 1)

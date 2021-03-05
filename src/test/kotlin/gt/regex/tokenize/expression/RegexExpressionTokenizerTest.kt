@@ -43,7 +43,7 @@ class RegexExpressionTokenizerTest {
 
     @Test
     fun `should tokenize regex with all operations`() {
-        val expression = "a(a|b)*b"
+        val expression = "a(a|b)*b+a?"
 
         val expected = listOf(
             Character("a"),
@@ -55,8 +55,10 @@ class RegexExpressionTokenizerTest {
             Grouping.CloseParenthesis,
             Operator.Closure,
             Operator.Concatenation,
-            Character("b")
-
+            Character("b"),
+            Operator.PositiveClosure,
+            Character("a"),
+            Operator.ZeroOrOne
         )
             .toTypedArray()
 

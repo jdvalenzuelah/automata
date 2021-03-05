@@ -14,7 +14,17 @@ class ElementTokenizerTest {
     }
 
     @Test
-    fun `should parse + to union`() {
+    fun `should parse ? to positive closure`() {
+        assertEquals(Operator.PositiveClosure, OperatorTokenizer("+"))
+    }
+
+    @Test
+    fun `should parse ? to zero or one`() {
+        assertEquals(Operator.ZeroOrOne, OperatorTokenizer("?"))
+    }
+
+    @Test
+    fun `should parse | to union`() {
         assertEquals(Operator.Or, OperatorTokenizer("|"))
     }
 

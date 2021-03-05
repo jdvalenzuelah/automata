@@ -28,6 +28,8 @@ class ThompsonTransform(
                     operationStack.addLast(thomptsonRules.concat(nfa1, nfa2))
                 }
                 Operator.Closure -> operationStack.addLast(thomptsonRules.closure(operationStack.removeLast()))
+                Operator.PositiveClosure -> operationStack.addLast(thomptsonRules.positiveClosure(operationStack.removeLast()))
+                Operator.ZeroOrOne ->operationStack.addLast(thomptsonRules.zeroOrOne(operationStack.removeLast()))
                 Operator.Or -> {
                     val nfa2 = operationStack.removeLast()
                     val nfa1 = operationStack.removeLast()
