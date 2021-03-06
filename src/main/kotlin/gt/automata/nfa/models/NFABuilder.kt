@@ -12,6 +12,7 @@ class NFABuilder<S, I> {
     private var finalStates = mutableListOf<IState<S>>()
     private var initialState: IState<S>? = null
     private var transitions: TransitionTable<S, I> = mutableMapOf()
+    private var alphabet: Collection<I> = emptySet()
 
     @NFADsl
     class StatesBuilder<S> {
@@ -39,6 +40,7 @@ class NFABuilder<S, I> {
     class TransitionTableBuilder<S, I> {
         private data class Transition<S, I>(val from: IState<S>, val transition: Pair<I, IState<S>>)
         private val transitions = mutableListOf<Transition<S, I>>()
+        private val alphabet = mutableSetOf<I>()
 
         @JvmName("simpleBy")
         infix fun Pair<S, S>.by(i: I) {
@@ -49,16 +51,17 @@ class NFABuilder<S, I> {
             val fromState = this@by.first
             val toState = this@by.second
             transitions.add(Transition(fromState, i to toState))
+            alphabet.add(i)
         }
 
-        fun build(): TransitionTable<S, I> = transitions
+        fun build(): Pair<TransitionTable<S, I>, Collection<I>> = transitions
             .groupBy { it.from }
             .map { (fromState, transitionList) ->
                 val groupedTransitions = transitionList.groupBy { it.transition.first }
                     .map { (action, transition) -> action to transition.map { it.transition.second } }
                 fromState to groupedTransitions.toMap()
             }
-            .toMap()
+            .toMap() to alphabet
 
     }
 
@@ -87,7 +90,10 @@ class NFABuilder<S, I> {
     }
 
     fun transitions(init: TransitionTableBuilder<S, I>.() -> Unit) {
-        transitions = TransitionTableBuilder<S, I>().apply(init).build()
+        TransitionTableBuilder<S, I>().apply(init).build().let {
+            transitions = it.first
+            alphabet = it.second
+        }
     }
 
     internal fun build(): NFA<S, I> {
@@ -96,7 +102,7 @@ class NFABuilder<S, I> {
         require(initialState in states) { "initial state must be part of states" }
         require(finalStates.isNotEmpty()) { "Final states are required" }
 
-        return NFA(states, initialState!!, finalStates, transitions)
+        return NFA(states, initialState!!, finalStates, transitions, alphabet)
     }
 
 }

@@ -83,8 +83,9 @@ class ThomptsonRules : ThompsonConstruction<Int, String> {
             .toMap()
 
         val combinedStates = nfa1.states + nfa2.states.filter { it != nfa2.initialState }
+        val combinedAlphabet = nfa1.alphabet + nfa2.alphabet
 
-        return NFA(combinedStates, nfa1.initialState, nfa2.finalStates, newTransitionTable)
+        return NFA(combinedStates, nfa1.initialState, nfa2.finalStates, newTransitionTable, combinedAlphabet)
     }
 
     override fun closure(nfa1: NonDeterministicFiniteAutomata<Int, String>): NonDeterministicFiniteAutomata<Int, String> {
@@ -132,8 +133,9 @@ class ThomptsonRules : ThompsonConstruction<Int, String> {
                 val newTransitions = trans.mapValues { it.value.mapNotNull { s -> newStates[s] } }
                 newState to newTransitions
             }.toMap()
+
         val newNfa = NFA(newStates.map { it.value }, newStates[nfa1.initialState]!!,
-            nfa1.finalStates.mapNotNull { newStates[it] }, newTransitionTable)
+            nfa1.finalStates.mapNotNull { newStates[it] }, newTransitionTable, nfa1.alphabet)
 
         return concat(newNfa, nfaClosure)
     }

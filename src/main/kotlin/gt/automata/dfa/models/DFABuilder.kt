@@ -12,6 +12,7 @@ class DFABuilder<S, I> {
     private var initialState: IState<S>? = null
     private var finalStates = mutableListOf<IState<S>>()
     private var transitions: MutableTransitionTable<S, I> = mutableMapOf()
+    private var alphabet: Set<I> = emptySet()
 
     class StatesBuilder<S> {
         private val states = mutableListOf<IState<S>>()
@@ -33,6 +34,7 @@ class DFABuilder<S, I> {
 
     class TransitionsBuilder<S, I> {
         private val transitionTable: MutableTransitionTable<S, I> = mutableMapOf()
+        private val alphabet: MutableSet<I> = mutableSetOf()
 
         infix fun Pair<IState<S>, IState<S>>.by(i: I) {
             val current = transitionTable[this@by.first]
@@ -41,6 +43,7 @@ class DFABuilder<S, I> {
                 current.put(i, this@by.second)
             else
                 transitionTable[this@by.first] = mutableMapOf(i to this@by.second)
+            alphabet.add(i)
         }
 
         @JvmName("simpleBy")
@@ -48,7 +51,7 @@ class DFABuilder<S, I> {
             State(this@by.first) to State(this@by.second) by i
         }
 
-        fun build() = transitionTable
+        fun build() = transitionTable to alphabet
 
     }
 
@@ -73,14 +76,17 @@ class DFABuilder<S, I> {
     }
 
     fun transitions(init: TransitionsBuilder<S, I>.() -> Unit) {
-        this@DFABuilder.transitions = TransitionsBuilder<S,I>().apply(init).build()
+        TransitionsBuilder<S,I>().apply(init).build().let {
+            transitions = it.first
+            alphabet = it.second
+        }
     }
 
     fun build(): DFA<S, I> {
         require(states.isNotEmpty()) { "States are required" }
         require(initialState != null) { "initial state is required" }
         require(finalStates.isNotEmpty()) { "At least one final state is required" }
-        return DFA(states, initialState!!, finalStates, transitions)
+        return DFA(states, initialState!!, finalStates, transitions, alphabet)
     }
 }
 

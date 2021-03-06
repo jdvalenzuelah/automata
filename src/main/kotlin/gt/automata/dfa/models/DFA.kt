@@ -7,7 +7,8 @@ data class DFA<S, I>(
     override val states: Collection<IState<S>>,
     override val initialState: IState<S>,
     override val finalStates: Collection<IState<S>>,
-    override val transitionTable: TransitionTable<S, I>
+    override val transitionTable: TransitionTable<S, I>,
+    override val alphabet: Collection<I>
 ) : DeterministicFiniteAutomata<S, I> {
 
     init {
