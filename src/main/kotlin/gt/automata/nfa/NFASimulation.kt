@@ -12,9 +12,11 @@ class NFASimulation<S, I>(
         var s = epsilonClosure.eClosure(automata, automata.initialState)
 
         input.forEach { char ->
-            s = s.mapNotNull { state -> automata.move(state, char) }.flatten()
+            s = s.flatMap { state ->
+                val moves = automata.move(state, char) ?: emptyList()
+                epsilonClosure.eClosure(automata, *moves.toTypedArray())
+            }
         }
-
         return s.any { it in automata.finalStates }
     }
 
