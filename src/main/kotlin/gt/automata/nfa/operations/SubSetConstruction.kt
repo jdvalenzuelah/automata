@@ -44,26 +44,27 @@ class SubSetConstruction<S, I>(
             }
         } while (t != null)
 
-
-
         val mappedStates = mutableMapOf<Collection<IState<S>>, IState<S>>()
 
         val transition: MutableTransitionTable<S, I> = mutableMapOf()
         val alphabet = mutableSetOf<I>()
         dTran.forEach { (fromAndSymbol, to) ->
-            val fromState = mappedStates.computeIfAbsent(fromAndSymbol.first, mappingStrategy)
-            val inputSymbol = fromAndSymbol.second
-            val toState = mappedStates.computeIfAbsent(to, mappingStrategy)
-            alphabet.add(inputSymbol)
-            transition[fromState]
-                ?.let { it[inputSymbol] = toState }
-                ?: run { transition[fromState] = mutableMapOf(inputSymbol to toState) }
+            if(to.isNotEmpty()) {
+                val fromState = mappedStates.computeIfAbsent(fromAndSymbol.first, mappingStrategy)
+                val inputSymbol = fromAndSymbol.second
+                val toState = mappedStates.computeIfAbsent(to, mappingStrategy)
+                if(fromAndSymbol.first.any { it in nfa.finalStates })
+                alphabet.add(inputSymbol)
+                transition[fromState]
+                    ?.let { it[inputSymbol] = toState }
+                    ?: run { transition[fromState] = mutableMapOf(inputSymbol to toState) }
+            }
         }
 
         return DFA(
             mappedStates.values,
             mappedStates[initialEClosure]!!,
-            setOf(mappedStates[ mappedStates.keys.last()]!!),
+            mappedStates.filter { s -> s.key.any { it in nfa.finalStates } }.values,
             transition,
             alphabet
         )
