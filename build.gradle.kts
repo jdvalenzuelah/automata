@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val jUnitVersion = "5.6.2"
 val kgraphvizVersion = "0.18.0"
 val kotlinArgParserVersion = "2.0.7"
+val tinyLogVersion = "2.3.0-M1"
 
 plugins {
     application
@@ -13,6 +14,7 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
+    maven("https://jitpack.io")
     jcenter()
 }
 
@@ -30,6 +32,10 @@ dependencies {
     implementation("guru.nidi:graphviz-kotlin:$kgraphvizVersion")
 
     implementation("com.xenomachina:kotlin-argparser:$kotlinArgParserVersion")
+
+    implementation("org.tinylog:tinylog-api-kotlin:$tinyLogVersion")
+    implementation("org.tinylog:tinylog-impl:$tinyLogVersion")
+    implementation("org.tinylog:slf4j-tinylog:$tinyLogVersion")
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))

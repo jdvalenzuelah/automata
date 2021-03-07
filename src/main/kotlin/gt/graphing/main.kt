@@ -40,8 +40,6 @@ private fun getMapper() = object  {
 }
 
 fun main(args: Array<String>): Unit = mainBody {
-    //TODO: Remove logging warnings
-
     val args = ArgParser(args).parseInto(::Args)
 
     val regexTokenizer = TokenizerConfig.expressionTokenizer()
