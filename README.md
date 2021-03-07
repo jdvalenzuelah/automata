@@ -38,9 +38,12 @@ run passing regex and destination path
 ```sh
 $ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex.png
 ```
-
-regex.png:
+by default, it will generate a nfa:
 
 ![closure graph](./.examples/regex.png)
 
-
+to generate a dfa (generated using subset construction from nfa) pass `--dfa` option
+```sh
+$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex2.png --dfa
+```
+![closure graph](./.examples/regex2.png)
