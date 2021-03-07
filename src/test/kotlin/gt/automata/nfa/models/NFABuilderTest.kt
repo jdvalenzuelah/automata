@@ -15,7 +15,8 @@ class NFABuilderTest {
             transitionTable = mapOf(
                 State("A") to mapOf("1" to listOf(State("B"), State("A"))),
                 State("B") to mapOf("2" to listOf(State("C")))
-            )
+            ),
+            alphabet = setOf("1", "2")
         )
 
         val dslNfa = nfa<String, String> {

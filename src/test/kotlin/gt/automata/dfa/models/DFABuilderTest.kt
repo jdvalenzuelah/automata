@@ -18,7 +18,8 @@ class DFABuilderTest {
                 State("1") to mapOf( "a" to State("1"), "b" to State("2") ),
                 State("2") to mapOf( "a" to State("1"), "b" to State("3") ),
                 State("3") to mapOf( "a" to State("1"), "b" to State("0") )
-            )
+            ),
+            alphabet = setOf("a", "b")
         )
 
         val dfa = dfa<String, String> {
