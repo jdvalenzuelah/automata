@@ -15,6 +15,7 @@ object RegexToPostfix : InfixToPostfix {
             is Operator -> this.precedence
             is Grouping -> Int.MIN_VALUE
             is Character -> Int.MAX_VALUE
+            else -> Int.MAX_VALUE
         }
     }
 
