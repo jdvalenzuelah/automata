@@ -26,7 +26,6 @@ class AutomataGraph<T, U> {
         return baseGraph {
             nfa.states.forEach {
                 when (it) {
-                    nfa.initialState -> it.toString()[Style.BOLD]
                     in nfa.finalStates -> it.toString()[Shape.DOUBLE_CIRCLE]
                     else -> it.toString()
                 }
@@ -47,7 +46,6 @@ class AutomataGraph<T, U> {
         return baseGraph {
             dfa.states.forEach {
                 when (it) {
-                    dfa.initialState -> it.toString()[Style.BOLD]
                     in dfa.finalStates -> it.toString()[Shape.DOUBLE_CIRCLE]
                     else -> it.toString()
                 }
