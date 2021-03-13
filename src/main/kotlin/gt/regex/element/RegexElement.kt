@@ -37,5 +37,8 @@ data class Character(val char: String) : RegexElement() {
 }
 
 sealed class Augmented(val id: String) : RegexElement() {
+
+    override fun toString(): String = id
+
     object EndMarker : Augmented("#")
 }

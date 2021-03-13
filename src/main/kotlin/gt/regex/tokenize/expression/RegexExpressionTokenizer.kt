@@ -1,10 +1,7 @@
 package gt.regex.tokenize.expression
 
 import gt.regex.RegexExpression
-import gt.regex.element.Character
-import gt.regex.element.Grouping
-import gt.regex.element.Operator
-import gt.regex.element.RegexElement
+import gt.regex.element.*
 import gt.regex.tokenize.element.TokenizeRegexElement
 import gt.regex.tokenize.isCharacter
 
@@ -12,6 +9,7 @@ class RegexExpressionTokenizer(
     private val operatorTokenizer: TokenizeRegexElement<Operator>,
     private val groupingTokenizer: TokenizeRegexElement<Grouping>,
     private val characterTokenizer: TokenizeRegexElement<Character>,
+    private val augmentedTokenizer: TokenizeRegexElement<Augmented>
 ) : TokenizeRegex {
 
 
@@ -22,13 +20,16 @@ class RegexExpressionTokenizer(
         val grouping = groupingTokenizer(str)
         if(grouping != null) return grouping
 
+        val augmented = augmentedTokenizer(str)
+        if(augmented != null) return augmented
+
         return characterTokenizer(str)!!
 
     }
 
     private fun shouldAddConcatenation(current: RegexElement, previous: RegexElement?): Boolean {
         return when(current) {
-            is Character -> previous.isCharacter() || previous == Grouping.CloseParenthesis || previous == Operator.Closure
+            is Character, is Augmented -> previous.isCharacter() || previous == Grouping.CloseParenthesis || previous == Operator.Closure
             Grouping.OpenParenthesis -> previous.isCharacter() || previous in listOf(Operator.Closure, Operator.PositiveClosure, Operator.ZeroOrOne, Grouping.CloseParenthesis)
             else -> false
         }

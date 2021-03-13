@@ -1,10 +1,7 @@
 package gt.regex.postfix
 
 import gt.regex.RegexExpression
-import gt.regex.element.Character
-import gt.regex.element.Grouping
-import gt.regex.element.Operator
-import gt.regex.element.RegexElement
+import gt.regex.element.*
 import java.lang.IllegalStateException
 import kotlin.jvm.Throws
 
@@ -14,8 +11,7 @@ object RegexToPostfix : InfixToPostfix {
         return when(this@precedence) {
             is Operator -> this.precedence
             is Grouping -> Int.MIN_VALUE
-            is Character -> Int.MAX_VALUE
-            else -> Int.MAX_VALUE
+            is Character, is Augmented -> Int.MAX_VALUE
         }
     }
 
@@ -28,7 +24,7 @@ object RegexToPostfix : InfixToPostfix {
 
         while(inputQueue.isNotEmpty()) {
             when(val el = inputQueue.removeFirst()) {
-                is Character -> outputQueue.addLast(el)
+                is Character, is Augmented -> outputQueue.addLast(el)
                 is Operator -> {
                     if(operatorStack.isEmpty()) {
                         operatorStack.addLast(el)
