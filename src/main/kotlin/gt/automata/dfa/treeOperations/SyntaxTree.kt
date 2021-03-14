@@ -1,16 +1,34 @@
 package gt.automata.dfa.treeOperations
 
 import gt.automata.nfa.epsilon
+import gt.regex.RegexExpression
 import gt.regex.element.*
 import gt.tree.models.Node
 import gt.tree.models.swap
 
+interface ISyntaxTree : TreeOperations {
+    val root: Node<RegexElement>
+    val alphabet : Collection<String>
+}
+
 // TODO: Support all operators
 class SyntaxTree (
-    private val root: Node<RegexElement>
-) : TreeOperations {
+    override val root: Node<RegexElement>,
+    regex: RegexExpression
+
+) : ISyntaxTree {
 
     data class FirstAndLastPos(val firstpos: Collection<Int>, val lastpos: Collection<Int>)
+
+    override val alphabet: Collection<String> by lazy {
+        regex.mapNotNull {
+            when(it){
+                is Character -> it.char
+                is Augmented.EndMarker -> it.id
+                else -> null
+            }
+        }.toSet()
+    }
 
     private val firstLastPosTable: Map<Node<RegexElement>, FirstAndLastPos> by lazy { buildFirstLastPos()  }
     private val followPosTable: Map<Int, MutableSet<Int>> by lazy { buildFollowPos() }
@@ -79,17 +97,17 @@ class SyntaxTree (
             }
             is Operator.Closure -> node.left?.let { firstpos(it) } ?: emptySet()
             else -> emptySet()
-        }
+        }.sorted()
     }
 
     override fun lastpos(node: Node<RegexElement>): Collection<Int> {
         val regexElement = node.data
         val nodeToProcess = if(regexElement is Operator && !regexElement.isUnary) node.swap() else node
-        return firstpos(nodeToProcess)
+        return firstpos(nodeToProcess).sorted()
     }
 
     override fun followpos(pos: Int): Collection<Int> {
-        return followPosTable[pos] ?: emptySet()
+        return (followPosTable[pos] ?: emptySet()).sorted()
     }
 
 }
