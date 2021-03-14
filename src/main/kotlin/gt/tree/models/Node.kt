@@ -6,21 +6,28 @@ import java.util.*
 
 data class Node<T>(
     override val data: T,
-    override val left: INode<T>?,
-    override val right: INode<T>?,
-) : INode<T> {
+    override val left: Node<T>?,
+    override val right: Node<T>?,
+    override val position: Int? = null
+) : INode<T>, Iterable<Node<T>> {
 
-    override val uid: String by lazy {
+    private val uuid: String by lazy {
         UUID.randomUUID().toString()
     }
 
-    override fun iterator(): Iterator<INode<T>> {
+    override fun uid(): String {
+        return uuid
+    }
+
+    override fun iterator(): Iterator<Node<T>> {
         return InOrderTraversalIterator(this)
     }
 
 }
 
 
-fun <T> Node<T>.left(l: T) = copy(left = Node(l, null, null))
+fun <T> Node<T>.left(l: Node<T>?) = copy(left = l)
 
-fun <T> Node<T>.right(r: T) = copy(right = Node(r, null, null))
+fun <T> Node<T>.right(r: Node<T>?) = copy(right = r)
+
+fun <T> Node<T>.swap() = copy(left = right, right = left)
