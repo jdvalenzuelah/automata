@@ -1,5 +1,6 @@
 package gt.regex.tree
 
+import gt.automata.nfa.epsilon
 import gt.regex.RegexExpression
 import gt.regex.element.*
 import gt.tree.models.Node
@@ -14,6 +15,16 @@ object RegexToTree : PostfixToExpressionTree {
             when(el) {
                 is Grouping -> error("Invalid postfix expression=$p1!")
                 is Character, is Augmented -> stack.addLast(Node(el, null, null, position)).also { position++ }
+                is Operator.PositiveClosure -> {
+                    //rr*
+                    val operand = stack.removeLast()
+                    stack.addLast(Node(Operator.Concatenation, operand, Node(Operator.Closure, operand.copy(), null)))
+                }
+                is Operator.ZeroOrOne -> {
+                    //r|epsilon
+                    val operand = stack.removeLast()
+                    stack.addLast(Node(Operator.Or, operand, Node(Character(epsilon), null, null)))
+                }
                 is Operator -> {
                     if(el.isUnary) {
                         val operand = stack.removeLast()

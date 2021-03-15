@@ -11,6 +11,7 @@ fun interface NfaToDfa<S, I> {
     fun toDfa(nfa: NonDeterministicFiniteAutomata<S, I>): DeterministicFiniteAutomata<S, I>
 }
 
+// TODO: Add regex to dfa impl
 class SubSetConstruction<S, I>(
     private val closure: EpsilonClosure<S, I>,
     private val mappingStrategy: (Collection<IState<S>>) -> IState<S>

@@ -1,5 +1,7 @@
 package gt.regex.element
 
+import gt.automata.nfa.epsilon
+
 sealed class RegexElement
 
 sealed class Operator(
@@ -34,6 +36,11 @@ sealed class Grouping(val id: String) : RegexElement() {
 
 data class Character(val char: String) : RegexElement() {
     override fun toString(): String = char
+
+    companion object {
+        val EPSILON = Character(epsilon)
+    }
+
 }
 
 sealed class Augmented(val id: String) : RegexElement() {

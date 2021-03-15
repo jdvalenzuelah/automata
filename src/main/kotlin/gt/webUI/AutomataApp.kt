@@ -100,10 +100,17 @@ class AutomataApp(
                             }
                         }
 
-                        renderAutomata("DFA:", scope.dfa.toFileFormat(), scope.dfaGraphBase64) {
+                        renderAutomata("DFA (from nfa):", scope.dfa.toFileFormat(), scope.dfaGraphBase64) {
                             render(testString) {
                                 val testValue = testString.value.map { it.toString() }
                                 renderSimulationResult(testString.value, regexHandler.getSimulationDFA(testValue, scope.dfa))
+                            }
+                        }
+
+                        renderAutomata("DFA (from regex):",scope.dfa2.toFileFormat(), scope.dfa2GraphBase64) {
+                            render(testString) {
+                                //val testValue = testString.value.map { it.toString() }
+                                //renderSimulationResult(testString.value, regexHandler.getSimulationDFA(testValue, scope.dfa2))
                             }
                         }
                     }

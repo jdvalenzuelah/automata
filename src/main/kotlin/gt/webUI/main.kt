@@ -1,6 +1,7 @@
 package gt.webUI
 
 import gt.automata.dfa.DFASimulation
+import gt.automata.dfa.operations.SyntaxTreeToDfa
 import gt.automata.models.State
 import gt.automata.nfa.NFASimulation
 import gt.automata.nfa.epsilon
@@ -9,7 +10,10 @@ import gt.automata.nfa.operations.SubSetConstruction
 import gt.automata.nfa.thompson.configuration.ThomptsonTransformConfig
 import gt.graphing.AutomataGraph
 import gt.main.AutomatasHandler
+import gt.regex.AugmentRegex
+import gt.regex.postfix.RegexToPostfix
 import gt.regex.tokenize.configuration.TokenizerConfig
+import gt.regex.tree.RegexToTree
 import kweb.util.random
 
 fun main() {
@@ -22,7 +26,11 @@ fun main() {
         SubSetConstruction(eClosure) { State(random.nextInt(50)) },
         DFASimulation(),
         NFASimulation(eClosure),
-        AutomataGraph()
+        AutomataGraph(),
+        AugmentRegex,
+        RegexToPostfix,
+        RegexToTree,
+        SyntaxTreeToDfa
     )
 
     val webHandler = AutomataWebHandler(automataHandler)
