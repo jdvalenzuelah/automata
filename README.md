@@ -29,21 +29,18 @@ $ cd ${YOUR_PROJECT_NAME}
 $ ./gradlew clean build
 ```
 
-### To generate a graph from a regex expresion
+### To use web ui to generate nfa, dfa and test regex
 Extract the dist
 ```sh
 $ tar -xf build/distributions/kotlin-based-compiler-1.0.0.tar
 ```
-run passing regex and destination path
+Run compiled
 ```sh
-$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex.png
+$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler
 ```
-by default, it will generate a nfa:
 
-![closure graph](./.examples/regex.png)
+Server will be listening on `http://localhost:7659/`
 
-to generate a dfa (generated using subset construction from nfa) pass `--dfa` option
-```sh
-$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex2.png --dfa
-```
-![closure graph](./.examples/regex2.png)
+![closure graph](./.examples/webui.png)
+
+logs will be saved to `kotlin-based-compiler.log`

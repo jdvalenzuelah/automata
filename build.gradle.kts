@@ -23,7 +23,7 @@ group = "id.jasoet.boilerplate"
 version = "1.0.0"
 
 application {
-    mainClassName = "gt.graphing.MainKt"
+    mainClassName = "gt.webUI.MainKt"
 }
 
 dependencies {
