@@ -17,7 +17,7 @@ class AutomataWebHandler(
         val regex: String,
         val nfa: NonDeterministicFiniteAutomata<Int, String>,
         val dfa: DeterministicFiniteAutomata<Int, String>,
-        val dfa2: DeterministicFiniteAutomata<String, String>,
+        val dfa2: DeterministicFiniteAutomata<Int, String>,
         val nfaGraphBase64: String,
         val dfaGraphBase64: String,
         val dfa2GraphBase64: String,
@@ -26,21 +26,23 @@ class AutomataWebHandler(
     data class SimulationScope(
         val testString: String,
         val nfaRes: Boolean,
-        val dfaRes: Boolean
+        val dfaRes: Boolean,
+        val dfaRes2: Boolean
     )
 
     fun getAutomataScopeFromRegex(regex: String): AutomataScope {
         val nfa = automatasHandler.getRegexNfa(regex)
         val dfa = automatasHandler.getDfaFromNfa(nfa)
         val dfa2 = automatasHandler.getRegexDfa(regex)
-        return AutomataScope(regex, nfa, dfa, dfa2, getNFABase64GraphIMG(nfa), getDFABase64GraphIMG(dfa), getDFABase64GraphIMG2(dfa2))
+        return AutomataScope(regex, nfa, dfa, dfa2, getNFABase64GraphIMG(nfa), getDFABase64GraphIMG(dfa), getDFABase64GraphIMG(dfa2))
     }
 
-    fun getSimulationScope(testString: Iterable<String>, nfa: NonDeterministicFiniteAutomata<Int, String>, dfa: DeterministicFiniteAutomata<Int, String>): SimulationScope {
+    fun getSimulationScope(testString: Iterable<String>, nfa: NonDeterministicFiniteAutomata<Int, String>, dfa: DeterministicFiniteAutomata<Int, String>, dfa2: DeterministicFiniteAutomata<Int, String>): SimulationScope {
         return SimulationScope(
             testString.joinToString(separator = ""),
             automatasHandler.getNfaSimulationResult(nfa, testString),
-            automatasHandler.getDfaSimulationResult(dfa, testString)
+            automatasHandler.getDfaSimulationResult(dfa, testString),
+            automatasHandler.getDfaSimulationResult(dfa2, testString)
         )
     }
 

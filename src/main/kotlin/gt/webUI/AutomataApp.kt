@@ -109,8 +109,8 @@ class AutomataApp(
 
                         renderAutomata("DFA (from regex):",scope.dfa2.toFileFormat(), scope.dfa2GraphBase64) {
                             render(testString) {
-                                //val testValue = testString.value.map { it.toString() }
-                                //renderSimulationResult(testString.value, regexHandler.getSimulationDFA(testValue, scope.dfa2))
+                                val testValue = testString.value.map { it.toString() }
+                                renderSimulationResult(testString.value, regexHandler.getSimulationDFA(testValue, scope.dfa2))
                             }
                         }
                     }

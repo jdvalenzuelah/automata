@@ -7,21 +7,20 @@ import gt.regex.element.Character
 import gt.regex.element.Augmented
 
 
-fun interface SyntaxTreeToDeterministicFiniteAutomata : (ISyntaxTree) -> DeterministicFiniteAutomata<String, String>
+fun interface SyntaxTreeToDeterministicFiniteAutomata : (ISyntaxTree) -> DeterministicFiniteAutomata<Int, String>
 
 
 // TODO: Add mapping strategy and use generics instead of <String, String>
 object SyntaxTreeToDfa : SyntaxTreeToDeterministicFiniteAutomata {
 
-    private var count = 0
-    private var letters = ('A'..'Z').iterator()
-    private fun getState(): String {
-        return letters.next().toString()
+    private var letters = (0..Int.MAX_VALUE).iterator()
+    private fun getState(): Int {
+        return letters.next()
     }
 
     private data class Marked(var marked: Boolean, val states: Collection<Int>)
 
-    override fun invoke(tree: ISyntaxTree): DeterministicFiniteAutomata<String, String> {
+    override fun invoke(tree: ISyntaxTree): DeterministicFiniteAutomata<Int, String> {
         val charPos = tree.root.mapNotNull {
             when(it.data) {
                 is Character -> if(it.data == Character.EPSILON) null else  it.data.char to it.position!!
@@ -61,7 +60,7 @@ object SyntaxTreeToDfa : SyntaxTreeToDeterministicFiniteAutomata {
             }
         }while (s != null)
 
-        val mappedStates = mutableMapOf<Collection<Int>, String>()
+        val mappedStates = mutableMapOf<Collection<Int>, Int>()
 
         // TODO: Remove all the loops!
         return dfa {

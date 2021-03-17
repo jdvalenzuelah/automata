@@ -38,8 +38,8 @@ class AutomatasHandler<S, I>(
     }
 
     // TODO: extract to service
-    fun getRegexDfa(regex: String): DeterministicFiniteAutomata<String, String> {
-        val tokens = regexTokenizer(AugmentRegex(regex))
+    fun getRegexDfa(regex: String): DeterministicFiniteAutomata<Int, String> {
+        val tokens = regexTokenizer(augmentRegex(regex))
         val postfix = regexToPostfix(tokens)
         val root = regexToTree(postfix)
         val tree = SyntaxTree(root, postfix)
