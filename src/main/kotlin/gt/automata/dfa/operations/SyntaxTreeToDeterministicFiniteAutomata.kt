@@ -13,6 +13,12 @@ fun interface SyntaxTreeToDeterministicFiniteAutomata : (ISyntaxTree) -> Determi
 // TODO: Add mapping strategy and use generics instead of <String, String>
 object SyntaxTreeToDfa : SyntaxTreeToDeterministicFiniteAutomata {
 
+    private var count = 0
+    private var letters = ('A'..'Z').iterator()
+    private fun getState(): String {
+        return letters.next().toString()
+    }
+
     private data class Marked(var marked: Boolean, val states: Collection<Int>)
 
     override fun invoke(tree: ISyntaxTree): DeterministicFiniteAutomata<String, String> {
@@ -55,21 +61,23 @@ object SyntaxTreeToDfa : SyntaxTreeToDeterministicFiniteAutomata {
             }
         }while (s != null)
 
+        val mappedStates = mutableMapOf<Collection<Int>, String>()
+
         // TODO: Remove all the loops!
         return dfa {
 
             states {
                 dTran.forEach { (from, to) ->
-                    state { from.first.toString() }
-                    state { to.toString() }
+                    state { mappedStates.getOrPut(from.first) { getState() } }
+                    state { mappedStates.getOrPut(to) { getState() } }
                 }
             }
-            initialState(start.toString())
-            finalStates(*finalStates.map { it.toString() }.toTypedArray())
+            initialState(mappedStates.getOrPut(start) { getState() })
+            finalStates(*finalStates.map { mappedStates.getOrPut(it) { getState() } }.toTypedArray())
 
             transitions {
                 dTran.forEach { (from, to) ->
-                    from.first.toString() to to.toString() by from.second
+                    mappedStates.getOrPut(from.first) { getState() } to mappedStates.getOrPut(to) { getState() }  by from.second
                 }
             }
 
