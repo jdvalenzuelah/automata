@@ -1,6 +1,5 @@
 package org.github.compiler.ui.web
 
-import gt.webUI.AutomataWebHandler
 import guru.nidi.graphviz.engine.Format
 import org.github.compiler.regularExpressions.automata.Automata
 import org.github.compiler.regularExpressions.automata.dfa.DeterministicFiniteAutomata

@@ -83,7 +83,7 @@ data class RegexSyntaxTree(
 
     override fun lastPos(node: INode<RegexElement>): Collection<Int> {
         val regexElement = node.data
-        val nodeToProcess = if(regexElement is gt.regex.element.Operator && !regexElement.isUnary) node.swap() else node
+        val nodeToProcess = if(regexElement is Operator && !regexElement.isUnary) node.swap() else node
         return firstPos(nodeToProcess).sorted()
     }
 
