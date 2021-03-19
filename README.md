@@ -39,8 +39,42 @@ Run compiled
 $ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler
 ```
 
-Server will be listening on `http://localhost:7659/`
+Server will be listening on `http://localhost:8080/`
 
 ![closure graph](./.examples/webui.png)
 
 logs will be saved to `kotlin-based-compiler.log`
+
+### cli tool usage to generate nfa, dfa and test regex
+
+run passing regex and destination path
+```sh
+$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex.png
+```
+by default, it will generate a nfa:
+
+![closure graph](./.examples/regex.png)
+
+to generate a dfa pass `--dfa` option
+```sh
+$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex2.png --dfa
+```
+
+by default dfa is built using subset construction. To use direct parsing pass `--direct` option
+```shell
+$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex2.png --dfa --direct
+```
+
+![closure graph](./.examples/regex2.png)
+
+to export generated automata to txt file use `--export` option
+
+```sh
+$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex2.png --dfa --export dfa.txt
+```
+
+to simulate automata using a string use option `--test`
+
+```sh
+$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" --test aaaab
+```

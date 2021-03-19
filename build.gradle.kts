@@ -23,7 +23,7 @@ group = "id.jasoet.boilerplate"
 version = "1.0.0"
 
 application {
-    mainClassName = "gt.webUI.MainKt"
+    mainClassName = "org.github.compiler.ui.web.MainKt"
 }
 
 dependencies {
