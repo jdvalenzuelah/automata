@@ -20,7 +20,7 @@ data class RegexSyntaxTree(
 
     private fun buildFirstLastPos(): Map<INode<RegexElement>, FirstAndLastPos> {
         return root.map { node ->
-            node to FirstAndLastPos(firstPos(node), firstPos(node))
+            node to FirstAndLastPos(firstPos(node), lastPos(node))
         }.toMap()
     }
 

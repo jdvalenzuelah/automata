@@ -32,6 +32,7 @@ dependencies {
 
     implementation("guru.nidi:graphviz-kotlin:$kgraphvizVersion")
 
+    // TODO: Test https://ajalt.github.io/clikt/
     implementation("com.xenomachina:kotlin-argparser:$kotlinArgParserVersion")
 
     implementation("org.tinylog:tinylog-api-kotlin:$tinyLogVersion")
