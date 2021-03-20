@@ -16,12 +16,12 @@ To transform a string into a regular expression a `RegexTokenizer` is used, this
 
 Tokenization of a `RegexElement` is defined as
 ```kotlin
-fun interface TokenizeRegexElement: (Char) -> RegexElement
+fun interface RegexElementTokenizer<out T: RegexElement> : Transform<Char, T?>
 ```
 
 Tokenization of a `RegexExpression` is defined as
 ```kotlin
-fun interface TokenizeRegex: (String) -> RegexExpression
+typealias RegexTokenizer = Transform<String, RegularExpression>
 ```
 
 This model allows interchangeability of implementations for each tokenizer.
