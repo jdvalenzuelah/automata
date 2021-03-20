@@ -1,3 +1,5 @@
 package org.github.compiler.regularExpressions.regex
 
-fun interface RegexTokenizer : (String) -> RegularExpression
+import org.github.compiler.regularExpressions.transforms.Transform
+
+typealias RegexTokenizer = Transform<String, RegularExpression>

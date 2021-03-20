@@ -10,14 +10,14 @@ import org.github.compiler.regularExpressions.automata.nfa.operations.EpsilonClo
 import org.github.compiler.regularExpressions.automata.nfa.operations.IdGenStrategy
 import org.github.compiler.regularExpressions.regex.RegularExpression
 import org.github.compiler.regularExpressions.regex.transform.RegexTransforms
+import org.github.compiler.regularExpressions.transforms.Transform
 import org.tinylog.kotlin.Logger
 
-class RegexToDFAByNFA<S>(
-    private val regexToNFA: RegexTransforms<NonDeterministicFiniteAutomata<S, Char>>,
+class NFAToDFA<S>(
     private val epsilonClosure: EpsilonClosure<S, Char>,
     private val stateIdGenStrategy: IdGenStrategy<S>,
     private val epsilonValue: Char
-) : RegexTransforms<DeterministicFiniteAutomata<S, Char>> {
+) : Transform<NonDeterministicFiniteAutomata<S, Char>, DeterministicFiniteAutomata<S, Char>> {
 
     private data class MarkedState<S>(var marked: Boolean, val states: Collection<IState<S>>)
 
@@ -70,10 +70,8 @@ class RegexToDFAByNFA<S>(
     }
 
 
-    override fun invoke(p1: RegularExpression): DeterministicFiniteAutomata<S, Char> {
-        Logger.info("Converting regex=$p1 to dfa by nfa")
-        val nfa = regexToNFA(p1)
-        return constructSubSet(nfa)
+    override fun invoke(p1: NonDeterministicFiniteAutomata<S, Char>): DeterministicFiniteAutomata<S, Char> {
+        return constructSubSet(p1)
     }
 
 }

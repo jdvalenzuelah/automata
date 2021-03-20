@@ -9,16 +9,15 @@ import org.github.compiler.regularExpressions.automata.nfa.operations.IdGenStrat
 import org.github.compiler.regularExpressions.regex.RegularExpression
 import org.github.compiler.regularExpressions.regex.transform.RegexTransforms
 import org.github.compiler.regularExpressions.syntaxTree.models.RegexSyntaxTree
+import org.github.compiler.regularExpressions.transforms.Transform
 
-class RegexToDFADirect<S>(
-    private val regexToSyntaxTree: RegexTransforms<RegexSyntaxTree>,
+class SyntaxTreeToDFA<S>(
     private val stateIdGenStrategy: IdGenStrategy<S>,
-) : RegexTransforms<DeterministicFiniteAutomata<S, Char>> {
+) : Transform<RegexSyntaxTree, DeterministicFiniteAutomata<S, Char>> {
 
     private data class Marked(var marked: Boolean, val states: Collection<Int>)
 
-    override fun invoke(p1: RegularExpression): DeterministicFiniteAutomata<S, Char> {
-        val tree = regexToSyntaxTree(p1)
+    override fun invoke(tree: RegexSyntaxTree): DeterministicFiniteAutomata<S, Char> {
 
         val charPos = tree.root.mapNotNull {
             when(val data = it.data) {

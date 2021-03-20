@@ -8,13 +8,15 @@ import org.github.compiler.regularExpressions.automata.nfa.operations.ThompsonIm
 import org.github.compiler.regularExpressions.regex.elements.epsilon
 import org.github.compiler.regularExpressions.transforms.regex.RegexToNFA
 import org.github.compiler.regularExpressions.regex.RegularExpression
+import org.github.compiler.regularExpressions.regex.configuration.RegexToPostfix
 import org.github.compiler.regularExpressions.regex.transform.RegexTransforms
+import org.github.compiler.regularExpressions.transforms.then
 
 class RegexToNFABuilder {
     var thompson: ThompsonConstruction<String, Char> = ThompsonImpl(epsilon, LetterStateMapper)
     var postfixConverter: RegexTransforms<RegularExpression> = InfixRegexToPostfix
 
-    fun build(): RegexTransforms<NonDeterministicFiniteAutomata<String, Char>> = RegexToNFA(postfixConverter, thompson)
+    fun build(): RegexTransforms<NonDeterministicFiniteAutomata<String, Char>> = postfixConverter.then(RegexToNFA(thompson))
 
 }
 

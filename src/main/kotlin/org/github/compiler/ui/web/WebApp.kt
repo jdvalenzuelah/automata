@@ -61,7 +61,7 @@ class WebApp(
         try {
             content(this)
         } catch (e: Exception) {
-            Logger.error("Error $e")
+            Logger.error("Error ${e.stackTraceToString()}")
             div(fomantic.ui.bottom.attached.error.message) {
                 i(fomantic.warning.icon)
                 text("An error occurred during executions, please check regex expression and try again!")

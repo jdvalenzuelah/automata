@@ -9,17 +9,15 @@ import org.github.compiler.regularExpressions.regex.elements.Operator
 import org.github.compiler.regularExpressions.regex.transform.RegexTransforms
 
 class RegexToNFA<S>(
-    private val regexToPostFix: RegexTransforms<RegularExpression>,
     private val thompsonConstruction: ThompsonConstruction<S, Char>,
 ) : RegexTransforms<NonDeterministicFiniteAutomata<S, Char>> {
 
-    override fun invoke(regex: RegularExpression): NonDeterministicFiniteAutomata<S, Char> {
-        val postfixExpression = regexToPostFix(regex)
+    override fun invoke(postfixExpression: RegularExpression): NonDeterministicFiniteAutomata<S, Char> {
         val operationStack = ArrayDeque<NonDeterministicFiniteAutomata<S, Char>>()
 
         postfixExpression.forEach { el ->
             when(el) {
-                is Grouping -> throw error("Invalid postfix expression was generated from input expression $regex")
+                is Grouping -> throw error("Invalid postfix expression was generated from input expression $postfixExpression")
                 is Character -> operationStack.addLast(thompsonConstruction.symbol(el.char))
                 Operator.Concatenation -> {
                     val nfa2 = operationStack.removeLast()

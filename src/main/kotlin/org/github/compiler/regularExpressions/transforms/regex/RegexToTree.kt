@@ -12,18 +12,10 @@ import org.github.compiler.regularExpressions.syntaxTree.INode
 import org.github.compiler.regularExpressions.syntaxTree.models.Node
 import org.tinylog.kotlin.Logger
 
-class RegexToTree(
-    private val regexToPostfix: RegexTransforms<RegularExpression>,
-    private val augmentRegex: Boolean = true
-) : RegexTransforms<INode<RegexElement>> {
+object RegexToTree : RegexTransforms<INode<RegexElement>> {
 
-    private fun maybeAugmentRegex(regex: RegularExpression) = if(augmentRegex)
-        listOf(Grouping.OpenParenthesis) + regex + listOf(Grouping.CloseParenthesis, Operator.Concatenation, Augmented.EndMarker)
-    else regex
-
-    override fun invoke(regex: RegularExpression): INode<RegexElement> {
-        Logger.info("Generating regex tree for regex=$regex")
-        val p1 = regexToPostfix(maybeAugmentRegex(regex))
+    override fun invoke(p1: RegularExpression): INode<RegexElement> {
+        Logger.info("Generating regex tree for regex=$p1")
         val stack = ArrayDeque<Node<RegexElement>>()
 
         var position = 1
