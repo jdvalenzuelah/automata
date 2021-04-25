@@ -19,7 +19,10 @@ class TokenizeRegex(
     private val character: RegexElementTokenizer<Character>
 ) : RegexTokenizer {
 
-    private fun getRegexElement(char: Char): RegexElement {
+    private fun getRegexElement(char: Char, scaped: Boolean): RegexElement {
+        if(scaped)
+            return character(char)!!
+
         val operator = operator(char)
         if(operator != null) return operator
 
@@ -43,9 +46,19 @@ class TokenizeRegex(
     override fun invoke(regex: String): RegularExpression {
         val result = mutableListOf<RegexElement>()
         var lastElement: RegexElement? = null
+        var scapeNext: Boolean = false
 
-        regex.forEach {
-            val currentElement = getRegexElement(it)
+        for(char in regex) {
+
+            if(char == '\\') {
+                scapeNext = true
+                continue
+            }
+
+            val currentElement = getRegexElement(char, scapeNext)
+
+            if(scapeNext)
+                scapeNext = false
 
             if(shouldAddConcatenation(currentElement, lastElement)) {
                 result.add(Concatenation)
