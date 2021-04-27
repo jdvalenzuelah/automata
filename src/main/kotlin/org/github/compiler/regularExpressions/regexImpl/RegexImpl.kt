@@ -2,9 +2,7 @@ package org.github.compiler.regularExpressions.regexImpl
 
 import org.github.compiler.regularExpressions.Regex
 import org.github.compiler.regularExpressions.automata.Automata
-import org.github.compiler.regularExpressions.automata.IState
 import org.github.compiler.regularExpressions.automata.configuration.AutomataSimulationFactory
-import org.github.compiler.regularExpressions.automata.dfa.DeterministicFiniteAutomata
 import org.github.compiler.regularExpressions.automata.simulation.AutomataSimulation
 import org.github.compiler.regularExpressions.transforms.regex.ParseRegexToAutomataFactory
 

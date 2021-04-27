@@ -4,7 +4,7 @@ import org.github.compiler.regularExpressions.automata.nfa.operations.IdGenStrat
 
 object LetterStateMapper : IdGenStrategy<String> {
 
-    private val letters = 'A'..'Z'
+    private val letters = 0..Int.MAX_VALUE
     private var iterator = letters.iterator()
     private var completeItersCounter = 1
 

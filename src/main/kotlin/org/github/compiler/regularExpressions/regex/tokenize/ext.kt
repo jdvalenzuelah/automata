@@ -12,7 +12,7 @@ fun RegexElement?.isGrouping() = this != null && this is Grouping
 
 fun RegexElement?.isCharacter() = this != null && (this is Character || this is Augmented)
 
-fun Regex.Companion.scape(ch: String): String {
+fun Regex.Companion.escape(ch: String): String {
     return ch.toList().joinToString(separator = "") {
         val isReserved = TokenizeOperator(it) != null || TokenizeGrouping(it) != null || TokenizeAugmented(it) != null
         if(isReserved) "\\$it" else it.toString()
