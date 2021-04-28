@@ -6,6 +6,7 @@ val kgraphvizVersion = "0.18.0"
 val kotlinArgParserVersion = "2.0.7"
 val tinyLogVersion = "2.3.0-M1"
 val kwebVersion = "0.8.6"
+val kotlinpoetVersion = "1.8.0"
 
 plugins {
     application
@@ -40,6 +41,8 @@ dependencies {
     implementation("org.tinylog:slf4j-tinylog:$tinyLogVersion")
 
     implementation("com.github.kwebio:kweb-core:$kwebVersion")
+
+    implementation("com.squareup:kotlinpoet:$kotlinpoetVersion")
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit"))
