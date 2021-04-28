@@ -160,12 +160,11 @@ class ATGParser(
 
     private fun readBasicSet(): Collection<Token> {
         val acc = mutableListOf<Token>()
-        while(tokens.first().type in listOf(TokenType.STRING, TokenType.IDENT, TokenType.CHAR, TokenType.CHAR_NUMBER, TokenType.CHAR_INTERVAL, TokenType.ANY)) {
+        while(tokens.first().type in listOf(TokenType.STRING, TokenType.IDENT, TokenType.CHAR, TokenType.CHAR_NUMBER, TokenType.CHAR_NUMBER_INTERVAL,  TokenType.CHAR_INTERVAL, TokenType.ANY)) {
             val tok = tokens.removeFirst()
             val tokenToAdd = if(tok.type == TokenType.ANY) tok.copy(type = TokenType.CHAR, lexeme = ATGSpec.ANY) else tok
            acc.add(tokenToAdd)
         }
-
         return acc
     }
 
@@ -275,7 +274,7 @@ class ATGParser(
             TokenType.STRING -> extractString(token).map { Regex.escape(it.toString()) }.joinToString(separator = "")
             TokenType.CHAR -> extractChar(token)
             TokenType.CHAR_NUMBER -> extractCharNumber(token)
-            TokenType.CHAR_INTERVAL -> extractCharInterval(token)
+            TokenType.CHAR_NUMBER_INTERVAL, TokenType.CHAR_INTERVAL -> extractCharInterval(token)
             TokenType.IDENT -> charsLookup[token.lexeme]?.asRegexExpression() ?: tokenLookup[token.lexeme]?.regex ?: ""
             TokenType.PARENTHESIS_OPEN -> "("
             TokenType.PARENTHESIS_CLOSE -> ")"
@@ -317,16 +316,21 @@ class ATGParser(
     }
 
     private fun extractCharInterval(token: Token): String {
-        require(token.type == TokenType.CHAR_INTERVAL)
+        require(token.type in listOf(TokenType.CHAR_NUMBER_INTERVAL, TokenType.CHAR_INTERVAL))
+
+        val trim: (String) -> Int = if(token.type == TokenType.CHAR_NUMBER_INTERVAL) {
+            { str: String -> str.removePrefix("CHR(").removeSuffix(")").toInt() }
+        } else {
+            { str: String -> str.replace("'", "").replace("/", "").first().toInt() }
+        }
 
         val interval = token.lexeme.split("..")
         check(interval.size == 2)
 
-        val trim = { str: String -> str.removePrefix("CHR(").removeSuffix(")").toInt() }
-
         val (start, end) = interval.map(trim)
 
         return (start..end).joinToString(separator = "") { it.toChar().toString() }
+
     }
 
 }

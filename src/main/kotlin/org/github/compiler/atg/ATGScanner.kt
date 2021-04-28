@@ -18,6 +18,7 @@ class ATGScanner(
         val string by lazy { ATGSpec.Patterns.string.toStatefulRegex() }
         val char by lazy { ATGSpec.Patterns.char.toStatefulRegex() }
         val charNumber by lazy { ATGSpec.Patterns.charNumber.toStatefulRegex() }
+        val charNumberInterval by lazy { ATGSpec.Patterns.charIntervalNumber.toStatefulRegex() }
         val charInterval by lazy { ATGSpec.Patterns.charInterval.toStatefulRegex() }
         val startCode by lazy { ATGSpec.Patterns.startCode.toStatefulRegex() }
         val endCode by lazy { ATGSpec.Patterns.endCode.toStatefulRegex() }
@@ -133,22 +134,40 @@ class ATGScanner(
     }
 
     private fun char(cur: Char) {
-        val match = matchWhilePossible(cur, char)
-        advance(match.length - 1)
-        char.reset()
-        addToken(TokenType.CHAR)
-    }
-
-    private fun charNumber(cur: Char) {
-        val charNumberInterval = matchWhilePossible(cur, charInterval)
+        val matchInterval = matchWhilePossible(cur, charInterval)
 
         if(charInterval.isAccepted()) {
-            advance(charNumberInterval.length - 1)
+            advance(matchInterval.length - 1)
             charInterval.reset()
             addToken(TokenType.CHAR_INTERVAL)
             return
         } else {
             charInterval.reset()
+        }
+
+        val match = matchWhilePossible(cur, char)
+
+        if(char.isAccepted()) {
+            advance(match.length - 1)
+            char.reset()
+            addToken(TokenType.CHAR)
+            return
+        } else {
+            char.reset()
+        }
+
+    }
+
+    private fun charNumber(cur: Char) {
+        val charNumberIntervalMatch = matchWhilePossible(cur, charNumberInterval)
+
+        if(charNumberInterval.isAccepted()) {
+            advance(charNumberIntervalMatch.length - 1)
+            charNumberInterval.reset()
+            addToken(TokenType.CHAR_NUMBER_INTERVAL)
+            return
+        } else {
+            charNumberInterval.reset()
         }
 
         val matchCharNumber = matchWhilePossible(cur, charNumber)

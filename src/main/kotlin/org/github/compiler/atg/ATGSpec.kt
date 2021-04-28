@@ -26,6 +26,7 @@ enum class TokenType {
     STRING,
     CHAR,
     CHAR_NUMBER,
+    CHAR_NUMBER_INTERVAL,
     CHAR_INTERVAL,
     NON_TOKEN,
     START_CODE,
@@ -79,11 +80,14 @@ object ATGSpec {
         private val digit = ATGSpec.digit.toList().joinToString(separator = "|")
         private val stringLetter = ATGSpec.stringLetter.toList().joinToString(separator = "|") { Regex.escape(it.toString()) }
         private val myAny = ATGSpec.myANY.toList().joinToString(separator = "|")
+        private val stringVal = (ATGSpec.ANY.toList() - listOf('"')).joinToString(separator = "|") { Regex.escape(it.toString()) }
+        private val charVal = (ATGSpec.ANY.toList() - listOf('\'')).joinToString(separator = "|") { Regex.escape(it.toString()) }
         val ident = "($letter)((($letter)|($digit))*)"
-        val string = "($quotes)($stringLetter)+($quotes)" //TODO: Fix to correct regex
-        val char = "'/?($letter)'"
+        val string = "($quotes)($stringVal)+($quotes)" //TODO: Fix to correct regex
+        val char = "'/?($charVal)'"
         val charNumber = "CHR\\((($digit)+)\\)"
-        val charInterval = "($charNumber)..(${charNumber})"
+        val charIntervalNumber = "($charNumber)..(${charNumber})"
+        val charInterval = "('(/?))($charVal)(')..('(/?))($charVal)(')"
         val nonToken: String = "($myAny)"
         const val startCode = "\\(."
         const val endCode = ".\\)"
