@@ -50,7 +50,7 @@ class TokenizeRegex(
 
         for(char in regex) {
 
-            if(char == '\\') {
+            if(char == '\\' && !scapeNext) {
                 scapeNext = true
                 continue
             }

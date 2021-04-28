@@ -14,13 +14,13 @@ class ATGScanner(
     private var current = 0
 
     private companion object Patterns {
-        val ident by lazy { ATG.Patterns.ident.toStatefulRegex() }
-        val string by lazy { ATG.Patterns.string.toStatefulRegex() }
-        val char by lazy { ATG.Patterns.char.toStatefulRegex() }
-        val charNumber by lazy { ATG.Patterns.charNumber.toStatefulRegex() }
-        val charInterval by lazy { ATG.Patterns.charInterval.toStatefulRegex() }
-        val startCode by lazy { ATG.Patterns.startCode.toStatefulRegex() }
-        val endCode by lazy { ATG.Patterns.endCode.toStatefulRegex() }
+        val ident by lazy { ATGSpec.Patterns.ident.toStatefulRegex() }
+        val string by lazy { ATGSpec.Patterns.string.toStatefulRegex() }
+        val char by lazy { ATGSpec.Patterns.char.toStatefulRegex() }
+        val charNumber by lazy { ATGSpec.Patterns.charNumber.toStatefulRegex() }
+        val charInterval by lazy { ATGSpec.Patterns.charInterval.toStatefulRegex() }
+        val startCode by lazy { ATGSpec.Patterns.startCode.toStatefulRegex() }
+        val endCode by lazy { ATGSpec.Patterns.endCode.toStatefulRegex() }
     }
 
     private val keywords = mapOf(
@@ -33,7 +33,7 @@ class ATGScanner(
         "FROM" to TokenType.FROM,
         "IF" to TokenType.IF,
         "IGNORE" to TokenType.IGNORE,
-        "IGNORECASE" to TokenType.IGNORECASE,
+        "IGNORECASE" to TokenType.IGNORE_CASE,
         "NESTER" to TokenType.NESTER,
         "PRAGMAS" to TokenType.PRAGMAS,
         "PRODUCTIONS" to TokenType.PRODUCTIONS,
@@ -41,7 +41,8 @@ class ATGScanner(
         "TO" to TokenType.TO,
         "TOKENS" to TokenType.TOKENS,
         "KEYWORDS" to TokenType.KEYWORDS,
-        "WEAK" to TokenType.WEAK
+        "WEAK" to TokenType.WEAK,
+        "EXCEPT" to TokenType.EXCEPT,
     )
 
     private fun isAtEnd(): Boolean {
@@ -49,7 +50,6 @@ class ATGScanner(
     }
 
     fun scanTokens(): Collection<Token> {
-        println("Starting token collection!")
         while (!isAtEnd()) {
             start = current
             scanToken()
@@ -61,7 +61,7 @@ class ATGScanner(
     private fun scanToken() {
         val cur = advance()
         when(cur) {
-            in ATG.ignore, ' ', '\n' -> {}
+            in ATGSpec.ignore, ' ', '\n' -> {}
             '+' -> addToken(TokenType.PLUS)
             '-' -> addToken(TokenType.MINUS)
             '=' -> addToken(TokenType.EQUALS)
@@ -77,8 +77,8 @@ class ATGScanner(
             '>' -> addToken(TokenType.LT)
             '\'' -> char(cur)
             'C' -> charNumber(cur)
-            ATG.quotes -> string(cur)
-            in ATG.letter -> ident(cur)
+            ATGSpec.quotes -> string(cur)
+            in ATGSpec.letter -> ident(cur)
             else -> {}
         }
     }
@@ -102,7 +102,7 @@ class ATGScanner(
         repeat(n) { if(!isAtEnd()) advance() }
     }
 
-    private fun matchWhilePossible(cur: Char, regex: StatefulRegex<*, *>): String {
+    private fun matchWhilePossible(cur: Char, regex: StatefulRegex): String {
         return "$cur${source.substring(current)}".takeWhile {
             val hasNext = regex.hasNext(it)
             if(hasNext)

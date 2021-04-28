@@ -6,32 +6,39 @@ import org.github.compiler.regularExpressions.transforms.regex.ParseRegexToAutom
 import org.github.compiler.regularExpressions.Regex
 import org.github.compiler.regularExpressions.transforms.Transform
 
-class StatefulRegex<S, A: DeterministicFiniteAutomata<S, Char>>(
+interface StatefulRegex : Regex {
+    fun hasNext(char: Char): Boolean
+    fun move(char: Char)
+    fun isAccepted(): Boolean
+    fun reset()
+}
+
+class StatefulRegexImpl<S, A: DeterministicFiniteAutomata<S, Char>>(
     private val regexAutomata: A,
-): Regex {
+): StatefulRegex {
 
     companion object {
-        operator fun invoke(pattern: String): StatefulRegex<*, *> {
+        operator fun invoke(pattern: String): StatefulRegex {
             val regex = ParseRegexToAutomataFactory.dfaParser()
                 .fromRegex()
                 .invoke(pattern)
 
-            return StatefulRegex(regex)
+            return StatefulRegexImpl(regex)
         }
     }
 
     private var lastState: IState<S>? = regexAutomata.initialState
 
-    fun hasNext(char: Char): Boolean = lastState != null && regexAutomata.move(lastState!!, char) != null
+    override fun hasNext(char: Char): Boolean = lastState != null && regexAutomata.move(lastState!!, char) != null
 
-    fun move(char: Char)  {
+    override fun move(char: Char)  {
         if(lastState != null)
             lastState = regexAutomata.move(lastState!!, char)
     }
 
-    fun isAccepted(): Boolean = lastState != null && lastState in regexAutomata.finalStates
+    override fun isAccepted(): Boolean = lastState != null && lastState in regexAutomata.finalStates
 
-    fun reset() {
+    override fun reset() {
         lastState = regexAutomata.initialState
     }
 
@@ -44,6 +51,6 @@ class StatefulRegex<S, A: DeterministicFiniteAutomata<S, Char>>(
 
 }
 
-private val stateFulRegex = Transform<String, StatefulRegex<*, *>> { StatefulRegex(it) }
+private val stateFulRegex = Transform<String, StatefulRegex> { StatefulRegexImpl(it) }
 
 fun String.toStatefulRegex() = stateFulRegex(this)

@@ -14,7 +14,7 @@ fun RegexElement?.isCharacter() = this != null && (this is Character || this is 
 
 fun Regex.Companion.escape(ch: String): String {
     return ch.toList().joinToString(separator = "") {
-        val isReserved = TokenizeOperator(it) != null || TokenizeGrouping(it) != null || TokenizeAugmented(it) != null
+        val isReserved = TokenizeOperator(it) != null || TokenizeGrouping(it) != null || TokenizeAugmented(it) != null || ch == "\\"
         if(isReserved) "\\$it" else it.toString()
     }
 }
