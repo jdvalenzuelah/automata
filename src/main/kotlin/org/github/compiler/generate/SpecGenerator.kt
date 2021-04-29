@@ -8,6 +8,7 @@ import org.github.compiler.atg.specification.TokenType
 import org.github.compiler.regularExpressions.regexImpl.StatefulRegex
 import org.github.compiler.regularExpressions.transforms.Transform
 
+//TODO: Fix generated regexss
 object SpecGenerator : Transform<ATG, FileSpec> {
 
 
@@ -41,7 +42,7 @@ object SpecGenerator : Transform<ATG, FileSpec> {
             )
             .build()
 
-        val kwywordsMap = PropertySpec
+        val keywordsMap = PropertySpec
             .builder("keywordsMap", Map::class.asClassName().parameterizedBy(String::class.asTypeName(), TokenType::class.asTypeName()))
             .addModifiers(KModifier.PRIVATE)
             .initializer(
@@ -55,26 +56,44 @@ object SpecGenerator : Transform<ATG, FileSpec> {
             )
             .build()
 
+        val ignoreSet = PropertySpec.builder("ignoreChars", Collection::class.asClassName().parameterizedBy(Char::class.asTypeName()))
+            .addModifiers(KModifier.PRIVATE)
+            .initializer(
+                CodeBlock.builder()
+                    .apply {
+                        addStatement("%S.toList()", atg.ignoreSet.def)
+                    }
+                    .build()
+            )
+            .build()
+
         val allPatterns = FunSpec.builder("getAllPatterns")
             .returns(Map::class.asClassName().parameterizedBy(TokenType::class.asTypeName(), StatefulRegex::class.asTypeName()))
             .addModifiers(KModifier.OVERRIDE)
             .addStatement("return patternsMap")
             .build()
 
-        val getKeyword = FunSpec.builder("getKeyword")
-            .returns(TokenType::class.asTypeName().copy(nullable = true))
-            .addParameter("lexeme", String::class)
+        val ignore = FunSpec.builder("ignoreSet")
+            .returns(Collection::class.asClassName().parameterizedBy(Char::class.asTypeName()))
             .addModifiers(KModifier.OVERRIDE)
-            .addStatement("return keywordsMap[lexeme]")
+            .addStatement("return ignoreChars")
+            .build()
+
+        val getKeyword = FunSpec.builder("getAllKeywords")
+            .returns(Map::class.asClassName().parameterizedBy(String::class.asTypeName(), TokenType::class.asTypeName()))
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("return keywordsMap")
             .build()
 
         val spec = TypeSpec.objectBuilder(specName)
             .addSuperinterface(Spec::class)
             .addType(tokenTypeEnum)
             .addProperty(patternsMap)
-            .addProperty(kwywordsMap)
+            .addProperty(keywordsMap)
+            .addProperty(ignoreSet)
             .addFunction(allPatterns)
             .addFunction(getKeyword)
+            .addFunction(ignore)
             .build()
 
         return FileSpec.builder("org.github.compiler.generated", specName)
