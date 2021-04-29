@@ -15,6 +15,8 @@ class Scanner(
 
     private var currentMatch: String = ""
 
+    private var backtrackStream = CharStream("")
+
     fun scanTokens(): Collection<TokenRef> {
         while (isNotEnded())
             nextToken()
@@ -23,15 +25,35 @@ class Scanner(
     }
 
     private fun nextToken() {
+        val matches = mutableListOf<Pair<String, TokenType>>()
         while (isNotEnded() && definition.hasNext(peek())) {
             val next = next()
             currentMatch += next
             definition.move(next)
-        }
-        val result = definition.getResult()
-            ?: error("unrecognized token $currentMatch!")
 
-        addToken(result)
+            if(definition.isAccepted()) {
+                matches.add(currentMatch to definition.getResult()!!)
+            }
+
+        }
+
+        val (match, matchType) = if(definition.isAccepted()) {
+            currentMatch to definition.getResult()!!
+        } else {
+            matches.maxByOrNull { it.first.length }
+        } ?: error("unrecognized token $currentMatch!")
+
+
+        if(match == currentMatch) {
+            addToken(matchType)
+        } else {
+            backtrackStream = CharStream(currentMatch.removePrefix(match))
+            currentMatch = match
+            addToken(matchType)
+            clean()
+            return nextToken()
+        }
+
         clean()
     }
 
@@ -43,9 +65,13 @@ class Scanner(
     private fun clean() {
         definition.reset()
         currentMatch = ""
+        backtrackStream = CharStream("")
     }
 
     private fun next(): Char {
+        if(backtrackStream.isNotEnded())
+            return backtrackStream.next()
+
         var next = source.next()
         while (next in ignoreSet)
             next = source.next()
@@ -53,6 +79,9 @@ class Scanner(
     }
 
     private fun peek(): Char {
+        if(backtrackStream.isNotEnded())
+            return backtrackStream.peek()
+
         var next = source.peek()
         while (next in ignoreSet) {
             source.next() //ignore
