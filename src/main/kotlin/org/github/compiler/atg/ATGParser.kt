@@ -257,8 +257,8 @@ class ATGParser(
             .joinToString(separator = "") {
                 val pat = parseSingleTokenAsRegex(it)
                 when(pat) {
-                    null -> ""
-                    "(", ")", ")*", "|" -> pat
+                    null, "" -> ""
+                    "(", ")", ")*", "|", ")?" -> pat
                     else -> "($pat)"
                 }
             }
