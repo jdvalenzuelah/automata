@@ -87,7 +87,7 @@ object ATGSpec {
         val char = "'/?($charVal)'"
         val charNumber = "CHR\\((($digit)+)\\)"
         val charIntervalNumber = "($charNumber)..(${charNumber})"
-        val charInterval = "('(/?))($charVal)(')..('(/?))($charVal)(')"
+        val charInterval = "'($charVal)'..'($charVal)'"
         val nonToken: String = "($myAny)"
         const val startCode = "\\(."
         const val endCode = ".\\)"
