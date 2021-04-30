@@ -3,6 +3,7 @@ package org.github.compiler.generate
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.github.compiler.atg.ATG
+import org.github.compiler.atg.Character
 import org.github.compiler.atg.specification.Spec
 import org.github.compiler.atg.specification.TokenType
 import org.github.compiler.regularExpressions.regexImpl.StatefulRegex
@@ -11,6 +12,19 @@ import org.github.compiler.regularExpressions.transforms.Transform
 //TODO: Fix generated regexss
 object SpecGenerator : Transform<ATG, FileSpec> {
 
+    private fun CodeBlock.Builder.encodeMap(k1: String, k2: Character) {
+        val regex = k2.asRegexExpression()
+
+        if(regex.any { it.toInt() < 21 }) {
+            val list = regex.toList().joinToString(separator = ",") { "${it.toInt()}" }
+            val code = "listOf(" + list + ").joinToString(separator = \"\"){ it.toChar().toString() }.toStatefulRegex()"
+            addStatement("$k1 to $code,")
+        } else {
+            addStatement("$k1 to %S.toStatefulRegex(),", regex)
+        }
+
+
+    }
 
     override fun invoke(atg: ATG): FileSpec {
 
@@ -35,7 +49,7 @@ object SpecGenerator : Transform<ATG, FileSpec> {
                         addStatement("mapOf(")
                         atg.keywords.forEach { addStatement("\t$enumName.${it.name.toUpperCase()} to %S.toStatefulRegex(),", it.def) }
                         atg.tokens.forEach { addStatement("\t$enumName.${it.name.toUpperCase()} to %S.toStatefulRegex(),", it.regex) }
-                        atg.characters.forEach { addStatement("\t$enumName.${it.name.toUpperCase()} to %S.toStatefulRegex(),", it.asRegexExpression()) }
+                        atg.characters.forEach { encodeMap("$enumName.${it.name.toUpperCase()}", it) }
                         addStatement(")")
                     }
                     .build()
@@ -96,9 +110,16 @@ object SpecGenerator : Transform<ATG, FileSpec> {
             .addFunction(ignore)
             .build()
 
+        val mainFunction = FunSpec.builder("main")
+            .addParameter("args", Array::class.asClassName().parameterizedBy(String::class.asTypeName()))
+            .addStatement("ScannerMain($specName).main(args)")
+            .build()
+
         return FileSpec.builder("org.github.compiler.generated", specName)
             .addImport("org.github.compiler.regularExpressions.regexImpl", "toStatefulRegex")
+            .addImport("org.github.compiler.ui.cli.scannerGenerator", "ScannerMain")
             .addType(spec)
+            .addFunction(mainFunction)
             .build()
     }
 
