@@ -29,52 +29,29 @@ $ cd ${YOUR_PROJECT_NAME}
 $ ./gradlew clean build
 ```
 
-### To use web ui to generate nfa, dfa and test regex
 Extract the dist
 ```sh
 $ tar -xf build/distributions/kotlin-based-compiler-1.0.0.tar
 ```
-Run compiled
+
+### cli tool usage to generate a scanner based on an CoCo/R .atg file specification
+
+run passing spec atg file and destination path
 ```sh
-$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler
+$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler .examples/atgs/HexNumber.ATG kotlin/org/github/compiler/generated
 ```
 
-Server will be listening on `http://localhost:8080/`
+the generated code will include the kotlin specification of the atg file ro be used by the scanner.
 
-![closure graph](./.examples/webui.png)
+### To use the scanner
 
-logs will be saved to `kotlin-based-compiler.log`
-
-### cli tool usage to generate nfa, dfa and test regex
-
-run passing regex and destination path
+recompile code, now with the generated bits as main class and extract dist
 ```sh
-$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex.png
-```
-by default, it will generate a nfa:
-
-![closure graph](./.examples/regex.png)
-
-to generate a dfa pass `--dfa` option
-```sh
-$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex2.png --dfa
+$ ./gradlew -PmainClass=org.github.compiler.generated.HexNumberSpecKt clean build
+$ tar -xf build/distributions/kotlin-based-compiler-1.0.0.tar 
 ```
 
-by default dfa is built using subset construction. To use direct parsing pass `--direct` option
-```shell
-$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex2.png --dfa --direct
-```
-
-![closure graph](./.examples/regex2.png)
-
-to export generated automata to txt file use `--export` option
-
+now run passing a file to scan, this will print the recognized tokens
 ```sh
-$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" -o ~/Desktop/regex2.png --dfa --export dfa.txt
-```
-
-to simulate automata using a string use option `--test`
-
-```sh
-$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler -e "a(a|b)*b" --test aaaab
+$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler .examples/atgs/tests/hexnumber.txt 
 ```
