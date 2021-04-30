@@ -7,6 +7,7 @@ val kotlinArgParserVersion = "2.0.7"
 val tinyLogVersion = "2.3.0-M1"
 val kwebVersion = "0.8.6"
 val kotlinpoetVersion = "1.8.0"
+val cliKtVersion = "3.1.0"
 
 plugins {
     application
@@ -24,7 +25,11 @@ group = "id.jasoet.boilerplate"
 version = "1.0.0"
 
 application {
-    mainClassName = "org.github.compiler.ui.web.MainKt"
+    mainClassName = if(project.hasProperty("mainClass"))
+        project.property("mainClass").toString()
+    else
+        "org.github.compiler.ui.cli.scannerGenerator.MainKt"
+
 }
 
 dependencies {
@@ -33,8 +38,8 @@ dependencies {
 
     implementation("guru.nidi:graphviz-kotlin:$kgraphvizVersion")
 
-    // TODO: Test https://ajalt.github.io/clikt/
-    implementation("com.xenomachina:kotlin-argparser:$kotlinArgParserVersion")
+    implementation("com.github.ajalt.clikt:clikt:$cliKtVersion")
+    implementation("com.xenomachina:kotlin-argparser:$kotlinArgParserVersion") //TODO Remove dependency
 
     implementation("org.tinylog:tinylog-api-kotlin:$tinyLogVersion")
     implementation("org.tinylog:tinylog-impl:$tinyLogVersion")
