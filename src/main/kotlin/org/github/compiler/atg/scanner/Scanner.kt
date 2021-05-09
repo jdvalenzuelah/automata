@@ -12,7 +12,7 @@ class Scanner(
     private val definition: IRegexDefinition<TokenType>,
     private val keywords: Map<String, TokenType>,
     private val ignoreSet: Collection<Char>
-) {
+): Stream<TokenRef> {
 
     private val scannedTokens = mutableListOf<TokenRef>()
 
@@ -29,8 +29,8 @@ class Scanner(
 
     private fun nextToken() {
         val matches = mutableListOf<Pair<String, TokenType>>()
-        while (isNotEnded() && definition.hasNext(peek())) {
-            val next = next()
+        while (isNotEnded() && definition.hasNext(peekChar())) {
+            val next = nextChar()
             currentMatch += next
             definition.move(next)
 
@@ -71,7 +71,7 @@ class Scanner(
         backtrackStream = CharStream("")
     }
 
-    private fun next(): Char {
+    private fun nextChar(): Char {
         if(backtrackStream.isNotEnded())
             return backtrackStream.next()
 
@@ -81,7 +81,7 @@ class Scanner(
         return next
     }
 
-    private fun peek(): Char {
+    private fun peekChar(): Char {
         if(backtrackStream.isNotEnded())
             return backtrackStream.peek()
 
@@ -93,5 +93,23 @@ class Scanner(
         return next
     }
 
-    private fun isNotEnded(): Boolean = try { peek(); true } catch (e: Exception) { false }
+    private fun isNotEnded(): Boolean = try { peekChar(); true } catch (e: Exception) { false }
+
+    override fun next(): TokenRef {
+        if(scannedTokens.isNotEmpty())
+            return scannedTokens.removeFirst()
+
+        nextToken()
+        return scannedTokens.removeFirst()
+    }
+
+    override fun peek(): TokenRef {
+        if(scannedTokens.isNotEmpty())
+            return scannedTokens.first()
+
+        nextToken()
+        return scannedTokens.first()
+    }
+
+    override fun isEnded(): Boolean = !isNotEnded() || scannedTokens.isNotEmpty()
 }
