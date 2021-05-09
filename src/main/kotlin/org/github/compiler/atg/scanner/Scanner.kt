@@ -1,5 +1,8 @@
 package org.github.compiler.atg.scanner
 
+import org.github.compiler.atg.scanner.streams.CharStream
+import org.github.compiler.atg.scanner.streams.Stream
+import org.github.compiler.atg.scanner.streams.isNotEnded
 import org.github.compiler.atg.specification.TokenRef
 import org.github.compiler.atg.specification.TokenType
 import org.github.compiler.regularExpressions.regexImpl.IRegexDefinition

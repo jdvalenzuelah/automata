@@ -4,7 +4,8 @@ import org.github.compiler.regularExpressions.regexImpl.IRegexDefinition
 import org.github.compiler.regularExpressions.regexImpl.StateFulRegexDefinition
 import org.github.compiler.regularExpressions.regexImpl.StatefulRegex
 import org.github.compiler.atg.scanner.Scanner
-import org.github.compiler.atg.scanner.toCharStream
+import org.github.compiler.atg.scanner.streams.toCharStream
+
 
 data class TokenRef(val lexeme: String, val type: TokenType)
 
