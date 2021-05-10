@@ -90,6 +90,10 @@ class ATGScanner(
         return source[current++]
     }
 
+    private fun peek(n: Int): String {
+        return source.substring(current, (current + n).coerceAtMost(source.length))
+    }
+
     private fun getCurrentSubString(): String = source.substring(start, current)
 
     private fun addToken(type: TokenType) {
@@ -226,16 +230,15 @@ class ATGScanner(
     }
 
     private fun consumeCode() {
-        var cur = advance()
-        while (!isAtEnd() && cur != '.') {
-            cur = advance()
+        val code = StringBuilder()
+        while (!isAtEnd() && peek(2) != ".)" && peek(2) != ".>") {
+            code.append(advance())
         }
 
-        current--
         addToken(TokenType.CODE_BLOCK)
         start = current // Ignore .
 
-        cur = advance()
+        val cur = advance()
         if(cur == '.')
             endCode(cur)
         else
