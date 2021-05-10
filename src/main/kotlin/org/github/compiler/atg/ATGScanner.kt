@@ -193,6 +193,9 @@ class ATGScanner(
             startCode.reset()
 
             addToken(TokenType.START_CODE)
+            start = current
+            consumeCode()
+
             return
         } else {
             startCode.reset()
@@ -200,6 +203,22 @@ class ATGScanner(
 
         addToken(TokenType.PARENTHESIS_OPEN)
 
+    }
+
+    private fun consumeCode() {
+        var cur = advance()
+        while (!isAtEnd() && cur != '.') {
+            cur = advance()
+        }
+
+        current--
+        addToken(TokenType.CODE_BLOCK)
+        start = current // Ignore .
+
+        if(cur == '.')
+            endCode(cur)
+        else
+            error("Unterminated code!")
     }
 
     private fun endCode(cur: Char) {

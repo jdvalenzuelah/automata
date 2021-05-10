@@ -52,6 +52,9 @@ enum class TokenType {
     KEYWORDS,
     WEAK,
     EXCEPT,
+
+    // Especial tokens
+    CODE_BLOCK
 }
 
 data class Token(
