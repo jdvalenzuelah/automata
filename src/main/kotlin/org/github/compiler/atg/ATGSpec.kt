@@ -31,6 +31,8 @@ enum class TokenType {
     NON_TOKEN,
     START_CODE,
     END_CODE,
+    START_ATTR,
+    END_ATTR,
 
     //KEYWORDS
     ANY,
@@ -94,6 +96,8 @@ object ATGSpec {
         val nonToken: String = "($myAny)"
         const val startCode = "\\(."
         const val endCode = ".\\)"
+        const val startAttr = "<."
+        const val endAttr = ".>"
     }
 
 }

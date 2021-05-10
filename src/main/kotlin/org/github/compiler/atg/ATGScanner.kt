@@ -22,6 +22,8 @@ class ATGScanner(
         val charInterval by lazy { ATGSpec.Patterns.charInterval.toStatefulRegex() }
         val startCode by lazy { ATGSpec.Patterns.startCode.toStatefulRegex() }
         val endCode by lazy { ATGSpec.Patterns.endCode.toStatefulRegex() }
+        val startAttr by lazy { ATGSpec.Patterns.startAttr.toStatefulRegex() }
+        val endAttr by lazy { ATGSpec.Patterns.endAttr.toStatefulRegex() }
     }
 
     private val keywords = mapOf(
@@ -74,7 +76,7 @@ class ATGScanner(
             '}' -> addToken(TokenType.CURLY_BRACKET_CLOSE)
             '|' -> addToken(TokenType.PIPE)
             '.' -> endCode(cur)
-            '<' -> addToken(TokenType.GT)
+            '<' -> startAttr(cur)
             '>' -> addToken(TokenType.LT)
             '\'' -> char(cur)
             'C' -> charNumber(cur)
@@ -205,6 +207,24 @@ class ATGScanner(
 
     }
 
+    private fun startAttr(cur: Char) {
+        val match = matchWhilePossible(cur, startAttr)
+
+        if(startAttr.isAccepted()) {
+            advance(match.length - 1)
+            startAttr.reset()
+            addToken(TokenType.START_ATTR)
+            start = current
+            consumeCode()
+            return
+        }
+
+        startAttr.reset()
+
+        addToken(TokenType.GT)
+
+    }
+
     private fun consumeCode() {
         var cur = advance()
         while (!isAtEnd() && cur != '.') {
@@ -215,6 +235,7 @@ class ATGScanner(
         addToken(TokenType.CODE_BLOCK)
         start = current // Ignore .
 
+        cur = advance()
         if(cur == '.')
             endCode(cur)
         else
@@ -231,9 +252,20 @@ class ATGScanner(
 
             addToken(TokenType.END_CODE)
             return
-        } else {
-            endCode.reset()
         }
+
+        endCode.reset()
+
+        val secondMatch = matchWhilePossible(cur, endAttr)
+
+        if(endAttr.isAccepted()) {
+            advance(secondMatch.length - 1)
+            endAttr.reset()
+            addToken(TokenType.END_ATTR)
+            return
+        }
+
+        endAttr.reset()
 
         addToken(TokenType.DOT)
     }

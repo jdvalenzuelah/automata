@@ -27,6 +27,8 @@ class ATGParser(
         val tokens = parseTokens(getTokens())
         val ignore = parseIgnoreSet(getIgnoreSet())
 
+        val productions = getProductions()
+
         return ATG(compilerName, characters, keywords, tokens, ignore)
     }
 
@@ -80,7 +82,7 @@ class ATGParser(
 
         val tokensD = mutableListOf<TokenDecl>()
         // read until we reach white space decl
-        while (tokens.first().type != TokenType.IGNORE && isNotEnded()) {
+        while (tokens.first().type !in listOf(TokenType.IGNORE, TokenType.PRODUCTIONS) && isNotEnded()) {
             tokensD.add(readToken())
         }
 
@@ -88,11 +90,28 @@ class ATGParser(
     }
 
     private fun getIgnoreSet(): Collection<Token> {
-        if(!isNotEnded()) return emptyList()
+        if(!isNotEnded() || tokens.first().type == TokenType.PRODUCTIONS)
+            return emptyList()
+
         check(tokens.first().type == TokenType.IGNORE)
         tokens.removeFirst() // ignore start
         return readSet()
     }
+
+    private fun getProductions(): Collection<Token> {
+        if(!isNotEnded())
+            return emptyList()
+
+        check(tokens.first().type == TokenType.PRODUCTIONS)
+        tokens.removeFirst() // ignore start
+
+        while (isNotEnded() && tokens.first().type != TokenType.END) {
+            readProduction()
+        }
+        return emptyList()
+    }
+
+    private fun readProduction() {}
 
     private fun readToken(): TokenDecl {
         check(tokens.first().type == TokenType.IDENT)
