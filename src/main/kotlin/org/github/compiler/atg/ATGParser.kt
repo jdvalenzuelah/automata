@@ -2,6 +2,7 @@ package org.github.compiler.atg
 
 import org.github.compiler.regularExpressions.Regex
 import org.github.compiler.regularExpressions.regex.tokenize.escape
+import kotlin.math.exp
 
 class ATGParser(
     tokens: Collection<Token>
@@ -15,6 +16,13 @@ class ATGParser(
     private data class KeywordDecl(val ident: Token, val def: Token)
     private data class TokenDecl(val ident: Token, val def: Collection<Token>)
 
+    private data class ProductionDecl(
+        val ident: Token,
+        val attributes: Collection<Token>,
+        val semanticActions: Collection<Token>,
+        val expression: Collection<Token>
+    )
+
     private val tokens = ArrayDeque<Token>().apply { addAll(tokens) }
 
     private val charsLookup = mutableMapOf("ANY" to Character("ANY", ATGSpec.ANY))
@@ -26,10 +34,9 @@ class ATGParser(
         val keywords = parseKeywordDecls(getKeywords())
         val tokens = parseTokens(getTokens())
         val ignore = parseIgnoreSet(getIgnoreSet())
+        val productions = parseProductions(getProductions())
 
-        val productions = getProductions()
-
-        return ATG(compilerName, characters, keywords, tokens, ignore)
+        return ATG(compilerName, characters, keywords, tokens, ignore, productions)
     }
 
     private fun getCompilerName(): String {
@@ -98,20 +105,87 @@ class ATGParser(
         return readSet()
     }
 
-    private fun getProductions(): Collection<Token> {
+    private fun getProductions(): Collection<ProductionDecl> {
         if(!isNotEnded())
             return emptyList()
 
         check(tokens.first().type == TokenType.PRODUCTIONS)
         tokens.removeFirst() // ignore start
 
+        val decls = mutableListOf<ProductionDecl>()
         while (isNotEnded() && tokens.first().type != TokenType.END) {
-            readProduction()
+            decls.add(readProduction())
         }
-        return emptyList()
+        return decls
     }
 
-    private fun readProduction() {}
+    private fun readProduction(): ProductionDecl {
+        check(tokens.first().type == TokenType.IDENT)
+
+        val productionName = tokens.removeFirst()
+
+        val attrs = if(tokens.first().type == TokenType.START_ATTR)
+            readAttributes()
+        else
+            emptyList()
+
+        val semAction = if(tokens.first().type == TokenType.START_CODE)
+            readSemAction()
+        else
+            emptyList()
+
+        check(tokens.first().type == TokenType.EQUALS)
+
+        tokens.removeFirst() // Ignore =
+
+        val expr = readExpr()
+
+        check(tokens.first().type == TokenType.DOT)
+        tokens.removeFirst() // Ignore dot
+
+        return ProductionDecl(productionName, attrs, semAction, expr)
+    }
+
+    private fun readExpr(): Collection<Token> {
+
+        val decl = mutableListOf<Token>()
+        while(tokens.first().type != TokenType.DOT) {
+            decl.add(tokens.removeFirst())
+        }
+
+        return decl
+    }
+
+    private fun readSemAction(): Collection<Token> {
+        check(tokens.first().type == TokenType.START_CODE)
+
+        tokens.removeFirst() // Ignore start code
+
+        val code = mutableListOf<Token>()
+        while(tokens.first().type != TokenType.END_CODE) {
+            code.add(tokens.removeFirst())
+        }
+
+        check(tokens.first().type == TokenType.END_CODE)
+
+        tokens.removeFirst() // Ignore end code
+
+        return code
+    }
+
+    private fun readAttributes(): Collection<Token> {
+        check(tokens.first().type == TokenType.START_ATTR)
+        tokens.removeFirst() // ignore start
+
+        val attrs = mutableListOf<Token>()
+        while (tokens.first().type != TokenType.END_ATTR) {
+            attrs.add(tokens.removeFirst())
+        }
+
+        check(tokens.first().type == TokenType.END_ATTR)
+        tokens.removeFirst() // Ignore end
+        return attrs
+    }
 
     private fun readToken(): TokenDecl {
         check(tokens.first().type == TokenType.IDENT)
@@ -229,6 +303,205 @@ class ATGParser(
     private fun parseIgnoreSet(decls: Collection<Token>): Character {
         val def = if(decls.size == 1) parseSingleTokenAsRegex(decls.first())!! else aggregateSet(decls)
         return Character("", def)
+    }
+
+    private fun parseProductions(decls: Collection<ProductionDecl>): Collection<Production> {
+        return decls.map(::parseProduction)
+    }
+
+    private fun parseProduction(decl: ProductionDecl): Production {
+        val name = decl.ident.lexeme
+        val attrs = decl.attributes.joinToString(separator = "") { it.lexeme }
+        val semAction = decl.semanticActions.joinToString(separator = "") { it.lexeme }
+        val expression = ParseExpression(decl.expression)
+        return Production(decl.ident.lexeme, attrs, semAction, expression)
+    }
+
+    private class ParseExpression(
+        private val exprTokens: ArrayDeque<Token>
+    ) {
+
+        companion object {
+            operator fun invoke(decls: Collection<Token>): Expression {
+                val exprTokens = ArrayDeque<Token>()
+                exprTokens.addAll(decls)
+                return ParseExpression(exprTokens).parseExpression()
+            }
+        }
+
+
+        private fun parseExpression(): Expression {
+            val terms = mutableListOf<Term>()
+            do {
+                if(exprTokens.isNotEmpty() && exprTokens.first().type == TokenType.PIPE)
+                    exprTokens.removeFirst()
+                terms.add(parseTerm())
+            } while (exprTokens.isNotEmpty() && exprTokens.first().type == TokenType.PIPE)
+
+            return terms
+        }
+
+        private fun parseTerm(): Term {
+            val factors = mutableListOf<Factor>()
+
+            do {
+                factors.add(parseFactor())
+            }while(exprTokens.isNotEmpty() && maybeNextIsFactor())
+
+            return factors
+        }
+
+        private fun maybeNextIsFactor(): Boolean {
+            return exprTokens.isNotEmpty() && exprTokens.first().type in listOf(
+                TokenType.IDENT,
+                TokenType.STRING,
+                TokenType.CHAR,
+                TokenType.PARENTHESIS_OPEN,
+                TokenType.BRACKET_OPEN,
+                TokenType.CURLY_BRACKET_OPEN,
+                TokenType.START_CODE
+            )
+        }
+
+        private fun parseFactor(): Factor {
+            return when(exprTokens.first().type) {
+                TokenType.IDENT,
+                TokenType.STRING,
+                TokenType.CHAR, -> parseSimpleFactor()
+                TokenType.PARENTHESIS_OPEN -> parseGroupedFactor()
+                TokenType.BRACKET_OPEN -> parseOptionalFactor()
+                TokenType.CURLY_BRACKET_OPEN -> parseRepeatFactor()
+                TokenType.START_CODE -> parseSemActionFactor()
+                else -> {
+                    error("error -> $exprTokens")
+                }
+            }
+        }
+
+        private fun parseSimpleFactor(): Factor.Simple {
+            check(exprTokens.first().type in listOf(TokenType.IDENT, TokenType.STRING, TokenType.CHAR,))
+
+            val ident = parseSymbol()
+
+            val attrs = if(exprTokens.isNotEmpty() && exprTokens.first().type == TokenType.START_ATTR)
+                parseAttr()
+            else
+                null
+
+            return Factor.Simple(ident, attrs)
+        }
+
+        private fun parseSymbol(): Symbol {
+            check(exprTokens.first().type in listOf(TokenType.IDENT, TokenType.STRING, TokenType.CHAR,))
+            val token = exprTokens.removeFirst()
+            return when(token.type) {
+                TokenType.STRING, TokenType.CHAR -> Symbol.Literal(token.lexeme.trim('"', '\''))
+                TokenType.IDENT -> Symbol.Ident(token.lexeme)
+                else -> error("unrecognized symbol!")
+            }
+
+        }
+
+        private fun parseAttr(): String {
+            check(exprTokens.first().type == TokenType.START_ATTR)
+
+            exprTokens.removeFirst() // ignore <.
+
+            val attr = mutableListOf<Token>()
+
+            while(exprTokens.first().type != TokenType.END_ATTR) {
+                attr.add(exprTokens.removeFirst())
+            }
+
+            exprTokens.removeFirst() // ignore .>
+
+            return attr.joinToString(separator = "") { it.lexeme }
+        }
+
+        private fun parseGroupedFactor(): Factor.Grouped {
+            check(exprTokens.first().type == TokenType.PARENTHESIS_OPEN)
+
+            exprTokens.removeFirst() // ignore )
+
+            val closeParIndex = findIndexOfClosing(TokenType.PARENTHESIS_OPEN, TokenType.PARENTHESIS_CLOSE)
+
+            check(closeParIndex != -1)
+
+            val subExpr = exprTokens.slice(0 until closeParIndex).toMutableList()
+
+            exprTokens.removeAll(subExpr)
+
+            subExpr.removeLast()
+
+            return Factor.Grouped(ParseExpression(subExpr))
+        }
+
+        private fun parseOptionalFactor(): Factor.Optional {
+            check(exprTokens.first().type == TokenType.BRACKET_OPEN)
+
+            exprTokens.removeFirst() // ignore [
+
+            val closeParIndex = findIndexOfClosing(TokenType.BRACKET_OPEN, TokenType.BRACKET_CLOSE)
+
+            check(closeParIndex != -1)
+
+            val subExpr = exprTokens.slice(0 until closeParIndex).toMutableList()
+
+            exprTokens.removeAll(subExpr)
+
+            subExpr.removeLast()
+
+            return Factor.Optional(ParseExpression(subExpr))
+        }
+
+        private fun parseRepeatFactor(): Factor.Repeat {
+            check(exprTokens.first().type == TokenType.CURLY_BRACKET_OPEN)
+
+            exprTokens.removeFirst() // ignore {
+
+            val closeParIndex = findIndexOfClosing(TokenType.CURLY_BRACKET_OPEN, TokenType.CURLY_BRACKET_CLOSE)
+
+            check(closeParIndex != -1)
+
+            val subExpr = exprTokens.slice(0 until closeParIndex).toMutableList()
+
+            repeat(subExpr.size) { exprTokens.removeFirst() }
+
+            subExpr.removeLast()
+
+            return Factor.Repeat(ParseExpression(subExpr))
+        }
+
+        private fun parseSemActionFactor(): Factor.SemAction {
+            check(exprTokens.first().type == TokenType.START_CODE)
+
+            exprTokens.removeFirst() // ignore (.
+
+            val code = mutableListOf<Token>()
+            while(exprTokens.first().type != TokenType.END_CODE) {
+                code.add(exprTokens.removeFirst())
+            }
+
+            exprTokens.removeFirst() // ignore .)
+
+            return Factor.SemAction(code.joinToString(separator = ""){ it.lexeme })
+
+        }
+
+        private fun findIndexOfClosing(open: TokenType, close: TokenType): Int {
+            var openCount = 1
+            var closeCount = 0
+            for(index in 0..exprTokens.size) {
+                if(openCount == closeCount)
+                    return index
+                if(exprTokens[index].type == open)
+                    openCount++
+                if (exprTokens[index].type == close)
+                    closeCount++
+            }
+            return -1
+        }
+
     }
 
     private fun aggregateSet(all: Collection<Token>): String {
