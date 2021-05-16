@@ -12,6 +12,10 @@ data class TokenRef(val lexeme: String, val type: TokenType)
 
 interface TokenType
 
+object UnknownType : TokenType {
+    override fun toString(): String = "UNKNOWN"
+}
+
 interface Token {
     val value: String
     val type: TokenType

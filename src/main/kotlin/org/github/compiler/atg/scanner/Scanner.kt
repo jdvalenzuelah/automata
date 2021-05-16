@@ -5,6 +5,7 @@ import org.github.compiler.atg.scanner.streams.Stream
 import org.github.compiler.atg.scanner.streams.isNotEnded
 import org.github.compiler.atg.specification.TokenRef
 import org.github.compiler.atg.specification.TokenType
+import org.github.compiler.atg.specification.UnknownType
 import org.github.compiler.regularExpressions.regexImpl.IRegexDefinition
 
 class Scanner(
@@ -44,7 +45,10 @@ class Scanner(
             currentMatch to definition.getResult()!!
         } else {
             matches.maxByOrNull { it.first.length }
-        } ?: error("unrecognized token $currentMatch!")
+        } ?: run {
+            unknownChar()
+            return
+        }
 
 
         if(match == currentMatch) {
@@ -57,6 +61,12 @@ class Scanner(
             return nextToken()
         }
 
+        clean()
+    }
+
+    private fun unknownChar() {
+        currentMatch += nextChar()
+        addToken(UnknownType)
         clean()
     }
 
