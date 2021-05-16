@@ -1,5 +1,6 @@
 package org.github.compiler.generate
 
+import kotlin.reflect.KClass
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.github.compiler.atg.ATG
@@ -26,17 +27,98 @@ object SpecGenerator : Transform<ATG, FileSpec> {
 
     }
 
+    private fun getInitCode(atg: ATG): CodeBlock {
+        val initCode = CodeBlock.builder()
+        atg.code.forEach { codeBlock ->
+            if(!codeBlock.maybeIsType()) {
+                initCode.addStatement(codeBlock)
+            }
+        }
+        return initCode.build()
+    }
+
+    private fun FileSpec.Builder.inferCustomTypes(atg: ATG): FileSpec.Builder = apply {
+        atg.code.forEach { codeBlock ->
+            if(codeBlock.maybeIsType()) {
+                addType(codeBlock.buildType())
+            }
+        }
+    }
+
+    private fun String.maybeIsType(): Boolean = contains("(.*)class\\s(.*)".toRegex())
+
+    private fun String.buildType(): TypeSpec {
+        val modifiers = mutableListOf<String>()
+        val params = mutableListOf<PropertySpec>()
+
+        val constructor = FunSpec.constructorBuilder()
+
+        var name = ""
+
+        val tokens = ArrayDeque<String>()
+        tokens.addAll(split(" "))
+
+        while(tokens.isNotEmpty()) {
+            val current = tokens.removeFirst()
+            when {
+                current == "class" -> { // next should be name
+                    check(tokens.first().isValidName())
+                    name = tokens.removeFirst()
+                }
+                current.isModifier() ->  modifiers.add(current)
+                current == "val" || current == "var" -> {
+                    val isMutable = current == "var"
+                    val propName = tokens.removeFirst()
+                    check(tokens.first() == ":")
+                    tokens.removeFirst() //ignore :
+                    val propType = tokens.removeFirst()
+                    constructor.addParameter(propName, propType.toKClass())
+                    params.add(
+                        PropertySpec
+                            .builder(propName, propType.toKClass().asTypeName())
+                            .initializer(propName)
+                            .mutable(isMutable)
+                            .build()
+                    )
+                }
+                else -> {} //ignore
+            }
+        }
+
+        return TypeSpec.classBuilder(name)
+            .addModifiers(modifiers.map { it.toModifier() })
+            .primaryConstructor(constructor.build())
+            .addProperties(params)
+            .build()
+    }
+
+    private fun String.isModifier(): Boolean = this in listOf("data", "public", "private", "sealed")
+    private fun String.toModifier(): KModifier = when(this) {
+        "data"-> KModifier.DATA
+        "public" -> KModifier.PUBLIC
+        "private"-> KModifier.PRIVATE
+        "sealed" -> KModifier.SEALED
+        else -> error("Unkown modifier")
+    }
+    private fun String.isValidName(): Boolean = this.matches("\\w*".toRegex())
+    private fun String.toKClass(): KClass<*> = when(this) {
+        "String" -> String::class
+        "Double" -> Double::class
+        "Int" -> Int::class
+        else -> error("unregnized type!")
+    }
+
     override fun invoke(atg: ATG): FileSpec {
 
-        val specName = "${atg.compilerName}Spec"
+        val specName = getSpecName(atg)
+        val enumName = getEnumName(atg)
 
-        val enumName = "${specName}TokenType"
         val tokenTypeEnum = TypeSpec.enumBuilder(enumName)
             .addSuperinterface(TokenType::class)
             .apply {
-                atg.keywords.forEach { addEnumConstant(it.name.toUpperCase()) }
-                atg.tokens.forEach { addEnumConstant(it.name.toUpperCase()) }
-                atg.characters.forEach { addEnumConstant(it.name.toUpperCase()) }
+                atg.keywords.forEach { addEnumConstant(getEnumConstantName(it)) }
+                atg.tokens.forEach { addEnumConstant(getEnumConstantName(it)) }
+                atg.characters.forEach { addEnumConstant(getEnumConstantName(it)) }
             }
             .build()
 
@@ -47,9 +129,9 @@ object SpecGenerator : Transform<ATG, FileSpec> {
                 CodeBlock.builder()
                     .apply {
                         addStatement("mapOf(")
-                        atg.keywords.forEach { addStatement("\t$enumName.${it.name.toUpperCase()} to %S.toStatefulRegex(),", it.def) }
-                        atg.tokens.forEach { addStatement("\t$enumName.${it.name.toUpperCase()} to %S.toStatefulRegex(),", it.regex) }
-                        atg.characters.forEach { encodeMap("$enumName.${it.name.toUpperCase()}", it) }
+                        atg.keywords.forEach { addStatement("\t$enumName.${getEnumConstantName(it)} to %S.toStatefulRegex(),", it.def) }
+                        atg.tokens.forEach { addStatement("\t$enumName.${getEnumConstantName(it)} to %S.toStatefulRegex(),", it.regex) }
+                        atg.characters.forEach { encodeMap("$enumName.${getEnumConstantName(it)}", it) }
                         addStatement(")")
                     }
                     .build()
@@ -63,7 +145,7 @@ object SpecGenerator : Transform<ATG, FileSpec> {
                 CodeBlock.builder()
                     .apply {
                         addStatement("mapOf(")
-                        atg.keywords.forEach { addStatement("\t%S to ${enumName}.${it.name.toUpperCase()},", it.def) }
+                        atg.keywords.forEach { addStatement("\t%S to ${enumName}.${getEnumConstantName(it)},", it.def) }
                         addStatement(")")
                     }
                     .build()
@@ -101,6 +183,7 @@ object SpecGenerator : Transform<ATG, FileSpec> {
 
         val spec = TypeSpec.objectBuilder(specName)
             .addSuperinterface(Spec::class)
+            .addInitializerBlock(getInitCode(atg))
             .addType(tokenTypeEnum)
             .addProperty(patternsMap)
             .addProperty(keywordsMap)
@@ -119,6 +202,7 @@ object SpecGenerator : Transform<ATG, FileSpec> {
             .addImport("org.github.compiler.regularExpressions.regexImpl", "toStatefulRegex")
             .addImport("org.github.compiler.ui.cli.scannerGenerator", "ScannerMain")
             .addType(spec)
+            .inferCustomTypes(atg)
             .addFunction(mainFunction)
             .build()
     }

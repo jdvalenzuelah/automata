@@ -3,17 +3,21 @@ package org.github.compiler.atg
 import org.github.compiler.regularExpressions.Regex
 import org.github.compiler.regularExpressions.regex.tokenize.escape
 
-data class Character(val name: String, val def: String) {
+interface Identifiable {
+    val name: String
+}
+
+data class Character(override val name: String, val def: String): Identifiable {
     fun asRegexExpression() = def.toList().joinToString(separator = "|") { Regex.escape(it.toString()) }
 }
 
-data class Keyword(val name: String, val def: String)
+data class Keyword(override val name: String, val def: String): Identifiable
 
-data class TokenDef(val name: String, val regex: String)
+data class TokenDef(override val name: String, val regex: String): Identifiable
 
 sealed class Symbol {
     data class Literal(val def: String): Symbol()
-    data class Ident(val name: String): Symbol()
+    data class Ident(override val name: String): Symbol(), Identifiable
 }
 
 sealed class Factor {
@@ -44,4 +48,11 @@ data class ATG(
     val tokens: Collection<TokenDef>,
     val ignoreSet: Character,
     val productions: Collection<Production>,
-)
+    val code: List<String>,
+) {
+    internal val knownTokens by lazy {
+        characters.map { it.name } + tokens.map { it.name } + keywords.map { it.name }
+    }
+}
+
+fun ATG.isKnownToken(symbol: Symbol.Ident): Boolean = symbol.name in knownTokens

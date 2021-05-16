@@ -28,6 +28,8 @@ class ATGParser(
     private val charsLookup = mutableMapOf("ANY" to Character("ANY", ATGSpec.ANY))
     private val tokenLookup = mutableMapOf<String, TokenDef>()
 
+    private val codeBlocks = mutableListOf<Token>()
+
     fun parse(): ATG {
         val compilerName = getCompilerName()
         val characters = parseCharactersDecls(getCharacters())
@@ -35,8 +37,9 @@ class ATGParser(
         val tokens = parseTokens(getTokens())
         val ignore = parseIgnoreSet(getIgnoreSet())
         val productions = parseProductions(getProductions())
+        val code = parseCodeBlocks()
 
-        return ATG(compilerName, characters, keywords, tokens, ignore, productions)
+        return ATG(compilerName, characters, keywords, tokens, ignore, productions, code)
     }
 
     private fun getCompilerName(): String {
@@ -52,9 +55,11 @@ class ATGParser(
     }
 
     private fun getCharacters(): Collection<SetDecl> {
-        // Ignore everything until char definition!
         while (tokens.first().type != TokenType.CHARACTERS) {
-            tokens.removeFirst()
+            if(tokens.first().type == TokenType.START_CODE)
+                consumeCode()
+            else
+                tokens.removeFirst() // Ignore everything until char definition!
         }
 
         tokens.removeFirst() //Char definition
@@ -66,6 +71,18 @@ class ATGParser(
         }
 
         return characters
+    }
+
+    private fun consumeCode() {
+        check(tokens.first().type == TokenType.START_CODE)
+
+        tokens.removeFirst() // Ignore (.
+
+        while(tokens.first().type != TokenType.END_CODE) {
+            codeBlocks.add(tokens.removeFirst())
+        }
+
+        tokens.removeFirst() // Ignore .)
     }
 
     private fun getKeywords(): Collection<KeywordDecl> {
@@ -310,7 +327,6 @@ class ATGParser(
     }
 
     private fun parseProduction(decl: ProductionDecl): Production {
-        val name = decl.ident.lexeme
         val attrs = decl.attributes.joinToString(separator = "") { it.lexeme }
         val semAction = decl.semanticActions.joinToString(separator = "") { it.lexeme }
         val expression = ParseExpression(decl.expression)
@@ -429,11 +445,13 @@ class ATGParser(
 
             val subExpr = exprTokens.slice(0 until closeParIndex).toMutableList()
 
-            exprTokens.removeAll(subExpr)
+            repeat(subExpr.size) { exprTokens.removeFirst() }
 
             subExpr.removeLast()
 
-            return Factor.Grouped(ParseExpression(subExpr))
+            val subRes = ParseExpression(subExpr)
+
+            return Factor.Grouped(subRes)
         }
 
         private fun parseOptionalFactor(): Factor.Optional {
@@ -447,7 +465,7 @@ class ATGParser(
 
             val subExpr = exprTokens.slice(0 until closeParIndex).toMutableList()
 
-            exprTokens.removeAll(subExpr)
+            repeat(subExpr.size) { exprTokens.removeFirst() }
 
             subExpr.removeLast()
 
@@ -503,6 +521,8 @@ class ATGParser(
         }
 
     }
+
+    private fun parseCodeBlocks(): List<String> = codeBlocks.map { it.lexeme }
 
     private fun aggregateSet(all: Collection<Token>): String {
         //TODO: Improve this mess
