@@ -3,6 +3,7 @@ package org.github.compiler.atg
 import org.github.compiler.atg.parser.AbstractParser
 import org.github.compiler.atg.scanner.streams.Stream
 import org.tinylog.kotlin.Logger
+import kotlin.math.exp
 
 class ProductionParser(
     productionTokens: Stream<Token>
@@ -117,19 +118,14 @@ class ProductionParser(
 
     private fun term(expr: Expression) {
         val term = Term()
-        factor(term)
-        expr.expr.add(term)
-
         while (lookAhead.type in listOf(
                 ATGTokenType.STRING, ATGTokenType.CHAR, ATGTokenType.IDENT,
                 ATGTokenType.PARENTHESIS_OPEN, ATGTokenType.CURLY_BRACKET_OPEN,
                 ATGTokenType.BRACKET_OPEN, ATGTokenType.START_CODE
         )) {
-            val newTerm = Term()
-            factor(newTerm)
-            expr.expr.add(newTerm)
+            factor(term)
         }
-
+        expr.expr.add(term)
     }
 
     private fun factor(term: Term) {

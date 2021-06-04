@@ -30,7 +30,7 @@ Stat (.val wrapper = Wrapper(.0);.) =
 	.
 
 Expression<.result : Wrapper.> (.val result1 = Wrapper(.0); val result2 = Wrapper(.0);.) =
-	Term<.ref result1.>
+	Term<.result1.>
 	{    "+"Term<.result2.>		(.result1.value += result2.value;.)
 	   | "-"Term<.result2.>		(.result1.value -= result2.value;.)
 	}								(.result.value = result1.value;.)
