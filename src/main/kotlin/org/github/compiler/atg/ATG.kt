@@ -15,24 +15,30 @@ data class Keyword(override val name: String, val def: String): Identifiable
 
 data class TokenDef(override val name: String, val regex: String): Identifiable
 
-sealed class Symbol {
-    data class Literal(val def: String): Symbol()
-    data class Ident(override val name: String): Symbol(), Identifiable
+sealed class SymbolType {
+    data class Literal(val def: String): SymbolType()
+    data class Ident(override val name: String): SymbolType(), Identifiable
 }
+
+/* Always | if size > 1*/
+data class Expression(val expr: MutableList<Term> = mutableListOf())
+
+/* Always concat if size > 1 */
+data class Term(val factors: MutableList<Factor> = mutableListOf())
 
 sealed class Factor {
-
-    data class Optional(val expr: Expression) : Factor()
-    data class Repeat(val expr: Expression) : Factor()
-    data class Grouped(val expr: Expression) : Factor()
-    data class SemAction(val semanticAction: String) : Factor()
-    data class Simple(val symbol: Symbol, val attributes: String?) : Factor()
-
+    data class Symbol(var symbol: SymbolType? = null, val attrs: MutableList<Token> = mutableListOf()) : Factor() {
+        val attrsCode : String
+            get() = attrs.joinToString(separator = "") { it.lexeme }
+    }
+    data class Grouped(val expr: Expression = Expression()) : Factor()
+    data class Optional(val expr: Expression = Expression()) : Factor()
+    data class Repeat(val expr: Expression = Expression()) : Factor()
+    data class SemAction(val semAction: MutableList<Token>) : Factor() {
+        val code : String
+            get() = semAction.joinToString(separator = "") { it.lexeme }
+    }
 }
-
-typealias Term = Collection<Factor>
-
-typealias Expression = Collection<Term>
 
 data class Production(
     val name: String,
@@ -55,4 +61,4 @@ data class ATG(
     }
 }
 
-fun ATG.isKnownToken(symbol: Symbol.Ident): Boolean = symbol.name in knownTokens
+fun ATG.isKnownToken(symbol: SymbolType.Ident): Boolean = symbol.name in knownTokens

@@ -1,11 +1,11 @@
 package org.github.compiler.atg
 
+import org.github.compiler.atg.specification.IToken
+import org.github.compiler.atg.specification.TokenType
 import org.github.compiler.regularExpressions.Regex
 import org.github.compiler.regularExpressions.regex.tokenize.escape
-import org.github.compiler.regularExpressions.regexImpl.toRegex
-import org.github.compiler.regularExpressions.regexImpl.toStatefulRegex
 
-enum class TokenType {
+enum class ATGTokenType: TokenType {
     //Single char
     PLUS,
     MINUS,
@@ -60,11 +60,11 @@ enum class TokenType {
 }
 
 data class Token(
-    val type: TokenType,
-    val lexeme: String,
+    override val type: ATGTokenType,
+    override val lexeme: String,
     val posStart: Int,
     val length: Int
-)
+): IToken
 
 //TODO: Most likely missing something
 object ATGSpec {

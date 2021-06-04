@@ -8,9 +8,14 @@ import org.github.compiler.atg.scanner.streams.Stream
 import org.github.compiler.atg.scanner.streams.toCharStream
 
 
-data class TokenRef(val lexeme: String, val type: TokenType)
+interface IToken {
+    val lexeme: String
+    val type: TokenType
+}
 
 interface TokenType
+
+data class TokenRef(override val lexeme: String, override val type: TokenType): IToken
 
 object UnknownType : TokenType {
     override fun toString(): String = "UNKNOWN"

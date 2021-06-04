@@ -27,25 +27,25 @@ class ATGScanner(
     }
 
     private val keywords = mapOf(
-        "ANY" to TokenType.ANY,
-        "CHARACTERS" to TokenType.CHARACTERS,
-        "COMMENTS" to TokenType.COMMENTS,
-        "COMPILER" to TokenType.COMPILER,
-        "CONTEXT" to TokenType.CONTEXT,
-        "END" to TokenType.END,
-        "FROM" to TokenType.FROM,
-        "IF" to TokenType.IF,
-        "IGNORE" to TokenType.IGNORE,
-        "IGNORECASE" to TokenType.IGNORE_CASE,
-        "NESTER" to TokenType.NESTER,
-        "PRAGMAS" to TokenType.PRAGMAS,
-        "PRODUCTIONS" to TokenType.PRODUCTIONS,
-        "SYNC" to TokenType.SYNC,
-        "TO" to TokenType.TO,
-        "TOKENS" to TokenType.TOKENS,
-        "KEYWORDS" to TokenType.KEYWORDS,
-        "WEAK" to TokenType.WEAK,
-        "EXCEPT" to TokenType.EXCEPT,
+        "ANY" to ATGTokenType.ANY,
+        "CHARACTERS" to ATGTokenType.CHARACTERS,
+        "COMMENTS" to ATGTokenType.COMMENTS,
+        "COMPILER" to ATGTokenType.COMPILER,
+        "CONTEXT" to ATGTokenType.CONTEXT,
+        "END" to ATGTokenType.END,
+        "FROM" to ATGTokenType.FROM,
+        "IF" to ATGTokenType.IF,
+        "IGNORE" to ATGTokenType.IGNORE,
+        "IGNORECASE" to ATGTokenType.IGNORE_CASE,
+        "NESTER" to ATGTokenType.NESTER,
+        "PRAGMAS" to ATGTokenType.PRAGMAS,
+        "PRODUCTIONS" to ATGTokenType.PRODUCTIONS,
+        "SYNC" to ATGTokenType.SYNC,
+        "TO" to ATGTokenType.TO,
+        "TOKENS" to ATGTokenType.TOKENS,
+        "KEYWORDS" to ATGTokenType.KEYWORDS,
+        "WEAK" to ATGTokenType.WEAK,
+        "EXCEPT" to ATGTokenType.EXCEPT,
     )
 
     private fun isAtEnd(): Boolean {
@@ -65,19 +65,19 @@ class ATGScanner(
         val cur = advance()
         when(cur) {
             in ATGSpec.ignore, ' ', '\n' -> {}
-            '+' -> addToken(TokenType.PLUS)
-            '-' -> addToken(TokenType.MINUS)
-            '=' -> addToken(TokenType.EQUALS)
+            '+' -> addToken(ATGTokenType.PLUS)
+            '-' -> addToken(ATGTokenType.MINUS)
+            '=' -> addToken(ATGTokenType.EQUALS)
             '(' -> startCode(cur)
-            ')' -> addToken(TokenType.PARENTHESIS_CLOSE)
-            '[' -> addToken(TokenType.BRACKET_OPEN)
-            ']' -> addToken(TokenType.BRACKET_CLOSE)
-            '{' -> addToken(TokenType.CURLY_BRACKET_OPEN)
-            '}' -> addToken(TokenType.CURLY_BRACKET_CLOSE)
-            '|' -> addToken(TokenType.PIPE)
+            ')' -> addToken(ATGTokenType.PARENTHESIS_CLOSE)
+            '[' -> addToken(ATGTokenType.BRACKET_OPEN)
+            ']' -> addToken(ATGTokenType.BRACKET_CLOSE)
+            '{' -> addToken(ATGTokenType.CURLY_BRACKET_OPEN)
+            '}' -> addToken(ATGTokenType.CURLY_BRACKET_CLOSE)
+            '|' -> addToken(ATGTokenType.PIPE)
             '.' -> endCode(cur)
             '<' -> startAttr(cur)
-            '>' -> addToken(TokenType.LT)
+            '>' -> addToken(ATGTokenType.LT)
             '\'' -> char(cur)
             'C' -> charNumber(cur)
             ATGSpec.quotes -> string(cur)
@@ -96,12 +96,12 @@ class ATGScanner(
 
     private fun getCurrentSubString(): String = source.substring(start, current)
 
-    private fun addToken(type: TokenType) {
+    private fun addToken(type: ATGTokenType) {
         val token = Token(type, getCurrentSubString(), start, current - start)
         tokens.add(token)
     }
 
-    private fun keyword(): TokenType? {
+    private fun keyword(): ATGTokenType? {
         return keywords[getCurrentSubString()]
     }
 
@@ -127,7 +127,7 @@ class ATGScanner(
         val kw = keyword()
 
         if(kw == null)
-            addToken(TokenType.IDENT)
+            addToken(ATGTokenType.IDENT)
         else
             addToken(kw)
     }
@@ -136,7 +136,7 @@ class ATGScanner(
         val match = matchWhilePossible(cur, string)
         advance(match.length - 1)
         string.reset()
-        addToken(TokenType.STRING)
+        addToken(ATGTokenType.STRING)
     }
 
     private fun char(cur: Char) {
@@ -145,7 +145,7 @@ class ATGScanner(
         if(charInterval.isAccepted()) {
             advance(matchInterval.length - 1)
             charInterval.reset()
-            addToken(TokenType.CHAR_INTERVAL)
+            addToken(ATGTokenType.CHAR_INTERVAL)
             return
         } else {
             charInterval.reset()
@@ -156,7 +156,7 @@ class ATGScanner(
         if(char.isAccepted()) {
             advance(match.length - 1)
             char.reset()
-            addToken(TokenType.CHAR)
+            addToken(ATGTokenType.CHAR)
             return
         } else {
             char.reset()
@@ -170,7 +170,7 @@ class ATGScanner(
         if(charNumberInterval.isAccepted()) {
             advance(charNumberIntervalMatch.length - 1)
             charNumberInterval.reset()
-            addToken(TokenType.CHAR_NUMBER_INTERVAL)
+            addToken(ATGTokenType.CHAR_NUMBER_INTERVAL)
             return
         } else {
             charNumberInterval.reset()
@@ -183,7 +183,7 @@ class ATGScanner(
 
             charNumber.reset()
 
-            addToken(TokenType.CHAR_NUMBER)
+            addToken(ATGTokenType.CHAR_NUMBER)
         } else {
             charNumber.reset()
             ident(cur)
@@ -198,7 +198,7 @@ class ATGScanner(
 
             startCode.reset()
 
-            addToken(TokenType.START_CODE)
+            addToken(ATGTokenType.START_CODE)
             start = current
             consumeCode()
 
@@ -207,7 +207,7 @@ class ATGScanner(
             startCode.reset()
         }
 
-        addToken(TokenType.PARENTHESIS_OPEN)
+        addToken(ATGTokenType.PARENTHESIS_OPEN)
 
     }
 
@@ -217,7 +217,7 @@ class ATGScanner(
         if(startAttr.isAccepted()) {
             advance(match.length - 1)
             startAttr.reset()
-            addToken(TokenType.START_ATTR)
+            addToken(ATGTokenType.START_ATTR)
             start = current
             consumeCode()
             return
@@ -225,7 +225,7 @@ class ATGScanner(
 
         startAttr.reset()
 
-        addToken(TokenType.GT)
+        addToken(ATGTokenType.GT)
 
     }
 
@@ -235,7 +235,7 @@ class ATGScanner(
             code.append(advance())
         }
 
-        addToken(TokenType.CODE_BLOCK)
+        addToken(ATGTokenType.CODE_BLOCK)
         start = current // Ignore .
 
         val cur = advance()
@@ -253,7 +253,7 @@ class ATGScanner(
 
             endCode.reset()
 
-            addToken(TokenType.END_CODE)
+            addToken(ATGTokenType.END_CODE)
             return
         }
 
@@ -264,13 +264,13 @@ class ATGScanner(
         if(endAttr.isAccepted()) {
             advance(secondMatch.length - 1)
             endAttr.reset()
-            addToken(TokenType.END_ATTR)
+            addToken(ATGTokenType.END_ATTR)
             return
         }
 
         endAttr.reset()
 
-        addToken(TokenType.DOT)
+        addToken(ATGTokenType.DOT)
     }
 
 }

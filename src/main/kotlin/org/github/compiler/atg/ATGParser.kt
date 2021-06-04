@@ -1,15 +1,15 @@
 package org.github.compiler.atg
 
+import org.github.compiler.atg.scanner.streams.ArrayDequeStream
 import org.github.compiler.regularExpressions.Regex
 import org.github.compiler.regularExpressions.regex.tokenize.escape
-import kotlin.math.exp
 
 class ATGParser(
-    tokens: Collection<Token>
+    allTokens: Collection<Token>
 ) {
 
     init {
-        require(tokens.isNotEmpty()) { "Tokens are require to perform parsing!" }
+        require(allTokens.isNotEmpty()) { "Tokens are require to perform parsing!" }
     }
 
     private data class SetDecl(val ident: Token, val def: Collection<Token>)
@@ -23,7 +23,7 @@ class ATGParser(
         val expression: Collection<Token>
     )
 
-    private val tokens = ArrayDeque<Token>().apply { addAll(tokens) }
+    private val tokens = ArrayDeque<Token>().apply { addAll(allTokens) }
 
     private val charsLookup = mutableMapOf("ANY" to Character("ANY", ATGSpec.ANY))
     private val tokenLookup = mutableMapOf<String, TokenDef>()
@@ -36,7 +36,7 @@ class ATGParser(
         val keywords = parseKeywordDecls(getKeywords())
         val tokens = parseTokens(getTokens())
         val ignore = parseIgnoreSet(getIgnoreSet())
-        val productions = parseProductions(getProductions())
+        val productions = ProductionParser(ArrayDequeStream(this.tokens)).parse()
         val code = parseCodeBlocks()
 
         return ATG(compilerName, characters, keywords, tokens, ignore, productions, code)
@@ -44,19 +44,19 @@ class ATGParser(
 
     private fun getCompilerName(): String {
         // Check compiler def
-        check(tokens.removeFirst().type == TokenType.COMPILER)
+        check(tokens.removeFirst().type == ATGTokenType.COMPILER)
 
         val compilerName = tokens.removeFirst()
 
         // Check compiler name is an ident
-        check(compilerName.type == TokenType.IDENT)
+        check(compilerName.type == ATGTokenType.IDENT)
 
         return compilerName.lexeme
     }
 
     private fun getCharacters(): Collection<SetDecl> {
-        while (tokens.first().type != TokenType.CHARACTERS) {
-            if(tokens.first().type == TokenType.START_CODE)
+        while (tokens.first().type != ATGTokenType.CHARACTERS) {
+            if(tokens.first().type == ATGTokenType.START_CODE)
                 consumeCode()
             else
                 tokens.removeFirst() // Ignore everything until char definition!
@@ -66,7 +66,7 @@ class ATGParser(
 
         val characters = mutableListOf<SetDecl>()
         // read until we reach keywords
-        while (tokens.first().type !in listOf(TokenType.KEYWORDS, TokenType.TOKENS) && isNotEnded()) {
+        while (tokens.first().type !in listOf(ATGTokenType.KEYWORDS, ATGTokenType.TOKENS) && isNotEnded()) {
             characters.add(readSetDecl())
         }
 
@@ -74,11 +74,11 @@ class ATGParser(
     }
 
     private fun consumeCode() {
-        check(tokens.first().type == TokenType.START_CODE)
+        check(tokens.first().type == ATGTokenType.START_CODE)
 
         tokens.removeFirst() // Ignore (.
 
-        while(tokens.first().type != TokenType.END_CODE) {
+        while(tokens.first().type != ATGTokenType.END_CODE) {
             codeBlocks.add(tokens.removeFirst())
         }
 
@@ -86,14 +86,14 @@ class ATGParser(
     }
 
     private fun getKeywords(): Collection<KeywordDecl> {
-        if(tokens.first().type == TokenType.TOKENS) return emptyList()
+        if(tokens.first().type == ATGTokenType.TOKENS) return emptyList()
 
-        check(tokens.first().type == TokenType.KEYWORDS)
+        check(tokens.first().type == ATGTokenType.KEYWORDS)
         tokens.removeFirst() // keywords start
 
         val keywords = mutableListOf<KeywordDecl>()
         // read until we reach tokens
-        while (tokens.first().type != TokenType.TOKENS && isNotEnded()) {
+        while (tokens.first().type != ATGTokenType.TOKENS && isNotEnded()) {
             keywords.add(readKeyword())
         }
 
@@ -101,12 +101,12 @@ class ATGParser(
     }
 
     private fun getTokens(): Collection<TokenDecl> {
-        check(tokens.first().type == TokenType.TOKENS)
+        check(tokens.first().type == ATGTokenType.TOKENS)
         tokens.removeFirst() // tokens start
 
         val tokensD = mutableListOf<TokenDecl>()
         // read until we reach white space decl
-        while (tokens.first().type !in listOf(TokenType.IGNORE, TokenType.PRODUCTIONS) && isNotEnded()) {
+        while (tokens.first().type !in listOf(ATGTokenType.IGNORE, ATGTokenType.PRODUCTIONS) && isNotEnded()) {
             tokensD.add(readToken())
         }
 
@@ -114,10 +114,10 @@ class ATGParser(
     }
 
     private fun getIgnoreSet(): Collection<Token> {
-        if(!isNotEnded() || tokens.first().type == TokenType.PRODUCTIONS)
+        if(!isNotEnded() || tokens.first().type == ATGTokenType.PRODUCTIONS)
             return emptyList()
 
-        check(tokens.first().type == TokenType.IGNORE)
+        check(tokens.first().type == ATGTokenType.IGNORE)
         tokens.removeFirst() // ignore start
         return readSet()
     }
@@ -126,38 +126,38 @@ class ATGParser(
         if(!isNotEnded())
             return emptyList()
 
-        check(tokens.first().type == TokenType.PRODUCTIONS)
+        check(tokens.first().type == ATGTokenType.PRODUCTIONS)
         tokens.removeFirst() // ignore start
 
         val decls = mutableListOf<ProductionDecl>()
-        while (isNotEnded() && tokens.first().type != TokenType.END) {
+        while (isNotEnded() && tokens.first().type != ATGTokenType.END) {
             decls.add(readProduction())
         }
         return decls
     }
 
     private fun readProduction(): ProductionDecl {
-        check(tokens.first().type == TokenType.IDENT)
+        check(tokens.first().type == ATGTokenType.IDENT)
 
         val productionName = tokens.removeFirst()
 
-        val attrs = if(tokens.first().type == TokenType.START_ATTR)
+        val attrs = if(tokens.first().type == ATGTokenType.START_ATTR)
             readAttributes()
         else
             emptyList()
 
-        val semAction = if(tokens.first().type == TokenType.START_CODE)
+        val semAction = if(tokens.first().type == ATGTokenType.START_CODE)
             readSemAction()
         else
             emptyList()
 
-        check(tokens.first().type == TokenType.EQUALS)
+        check(tokens.first().type == ATGTokenType.EQUALS)
 
         tokens.removeFirst() // Ignore =
 
         val expr = readExpr()
 
-        check(tokens.first().type == TokenType.DOT)
+        check(tokens.first().type == ATGTokenType.DOT)
         tokens.removeFirst() // Ignore dot
 
         return ProductionDecl(productionName, attrs, semAction, expr)
@@ -166,7 +166,7 @@ class ATGParser(
     private fun readExpr(): Collection<Token> {
 
         val decl = mutableListOf<Token>()
-        while(tokens.first().type != TokenType.DOT) {
+        while(tokens.first().type != ATGTokenType.DOT) {
             decl.add(tokens.removeFirst())
         }
 
@@ -174,16 +174,16 @@ class ATGParser(
     }
 
     private fun readSemAction(): Collection<Token> {
-        check(tokens.first().type == TokenType.START_CODE)
+        check(tokens.first().type == ATGTokenType.START_CODE)
 
         tokens.removeFirst() // Ignore start code
 
         val code = mutableListOf<Token>()
-        while(tokens.first().type != TokenType.END_CODE) {
+        while(tokens.first().type != ATGTokenType.END_CODE) {
             code.add(tokens.removeFirst())
         }
 
-        check(tokens.first().type == TokenType.END_CODE)
+        check(tokens.first().type == ATGTokenType.END_CODE)
 
         tokens.removeFirst() // Ignore end code
 
@@ -191,28 +191,28 @@ class ATGParser(
     }
 
     private fun readAttributes(): Collection<Token> {
-        check(tokens.first().type == TokenType.START_ATTR)
+        check(tokens.first().type == ATGTokenType.START_ATTR)
         tokens.removeFirst() // ignore start
 
         val attrs = mutableListOf<Token>()
-        while (tokens.first().type != TokenType.END_ATTR) {
+        while (tokens.first().type != ATGTokenType.END_ATTR) {
             attrs.add(tokens.removeFirst())
         }
 
-        check(tokens.first().type == TokenType.END_ATTR)
+        check(tokens.first().type == ATGTokenType.END_ATTR)
         tokens.removeFirst() // Ignore end
         return attrs
     }
 
     private fun readToken(): TokenDecl {
-        check(tokens.first().type == TokenType.IDENT)
+        check(tokens.first().type == ATGTokenType.IDENT)
         val ident = tokens.removeFirst()
 
-        check(tokens.first().type == TokenType.EQUALS)
+        check(tokens.first().type == ATGTokenType.EQUALS)
         tokens.removeFirst() // Ignore =
 
         val tokenDef = mutableListOf<Token>()
-        while (tokens.first().type != TokenType.DOT && isNotEnded()) {
+        while (tokens.first().type != ATGTokenType.DOT && isNotEnded()) {
             tokenDef.add(tokens.removeFirst())
         }
         tokens.removeFirst() //Ignore dot
@@ -220,26 +220,26 @@ class ATGParser(
     }
 
     private fun readKeyword(): KeywordDecl {
-        check(tokens.first().type === TokenType.IDENT)
+        check(tokens.first().type === ATGTokenType.IDENT)
         val ident = tokens.removeFirst()
 
-        check(tokens.first().type == TokenType.EQUALS)
+        check(tokens.first().type == ATGTokenType.EQUALS)
         tokens.removeFirst() //Ignore =
 
-        check(tokens.first().type == TokenType.STRING)
+        check(tokens.first().type == ATGTokenType.STRING)
         val def = tokens.removeFirst()
 
-        check(tokens.first().type == TokenType.DOT)
+        check(tokens.first().type == ATGTokenType.DOT)
         tokens.removeFirst() //ignore dot
 
         return KeywordDecl(ident, def)
     }
 
     private fun readSetDecl(): SetDecl {
-        check(tokens.first().type === TokenType.IDENT)
+        check(tokens.first().type === ATGTokenType.IDENT)
         val ident = tokens.removeFirst()
 
-        check(tokens.first().type == TokenType.EQUALS)
+        check(tokens.first().type == ATGTokenType.EQUALS)
         tokens.removeFirst() //Ignore =
 
         val set = readSet()
@@ -253,7 +253,7 @@ class ATGParser(
         do {
             set.addAll(readBasicSet())
 
-            val op = if(tokens.first().type in listOf(TokenType.PLUS, TokenType.MINUS)) tokens.removeFirst() else null
+            val op = if(tokens.first().type in listOf(ATGTokenType.PLUS, ATGTokenType.MINUS)) tokens.removeFirst() else null
 
             if(op != null) {
                 val secondSet = readBasicSet()
@@ -262,7 +262,7 @@ class ATGParser(
                 set.addAll(secondSet)
             }
 
-        } while (tokens.first().type != TokenType.DOT && isNotEnded())
+        } while (tokens.first().type != ATGTokenType.DOT && isNotEnded())
 
         tokens.removeFirst() //Ignore dot
         return set
@@ -270,23 +270,23 @@ class ATGParser(
 
     private fun readBasicSet(): Collection<Token> {
         val acc = mutableListOf<Token>()
-        while(tokens.first().type in listOf(TokenType.STRING, TokenType.IDENT, TokenType.CHAR, TokenType.CHAR_NUMBER, TokenType.CHAR_NUMBER_INTERVAL,  TokenType.CHAR_INTERVAL, TokenType.ANY)) {
+        while(tokens.first().type in listOf(ATGTokenType.STRING, ATGTokenType.IDENT, ATGTokenType.CHAR, ATGTokenType.CHAR_NUMBER, ATGTokenType.CHAR_NUMBER_INTERVAL,  ATGTokenType.CHAR_INTERVAL, ATGTokenType.ANY)) {
             val tok = tokens.removeFirst()
-            val tokenToAdd = if(tok.type == TokenType.ANY) tok.copy(type = TokenType.CHAR, lexeme = ATGSpec.ANY) else tok
+            val tokenToAdd = if(tok.type == ATGTokenType.ANY) tok.copy(type = ATGTokenType.CHAR, lexeme = ATGSpec.ANY) else tok
            acc.add(tokenToAdd)
         }
         return acc
     }
 
-    private fun isNotEnded(): Boolean = tokens.firstOrNull()?.type !in listOf(TokenType.END, null)
+    private fun isNotEnded(): Boolean = tokens.firstOrNull()?.type !in listOf(ATGTokenType.END, null)
 
     private fun parseKeywordDecls(keywordDecls: Collection<KeywordDecl>): Collection<Keyword> {
         return keywordDecls.map(::parseKeywordDecls)
     }
 
     private fun parseKeywordDecls(decl: KeywordDecl): Keyword {
-        check(decl.ident.type == TokenType.IDENT)
-        check(decl.def.type == TokenType.STRING)
+        check(decl.ident.type == ATGTokenType.IDENT)
+        check(decl.def.type == ATGTokenType.STRING)
 
         val id = decl.ident.lexeme
         val def = extractString(decl.def)
@@ -297,7 +297,7 @@ class ATGParser(
     private fun parseCharactersDecls(chars: Collection<SetDecl>): List<Character> {
         val singleDef = chars.filter { it.def.size == 1 }
             .map { decl ->
-                check(decl.ident.type == TokenType.IDENT)
+                check(decl.ident.type == ATGTokenType.IDENT)
                 val id = decl.ident.lexeme
                 val def = parseSingleTokenAsRegex(decl.def.first())!!
                 val char = Character(id, def)
@@ -322,206 +322,6 @@ class ATGParser(
         return Character("", def)
     }
 
-    private fun parseProductions(decls: Collection<ProductionDecl>): Collection<Production> {
-        return decls.map(::parseProduction)
-    }
-
-    private fun parseProduction(decl: ProductionDecl): Production {
-        val attrs = decl.attributes.joinToString(separator = "") { it.lexeme }
-        val semAction = decl.semanticActions.joinToString(separator = "") { it.lexeme }
-        val expression = ParseExpression(decl.expression)
-        return Production(decl.ident.lexeme, attrs, semAction, expression)
-    }
-
-    private class ParseExpression(
-        private val exprTokens: ArrayDeque<Token>
-    ) {
-
-        companion object {
-            operator fun invoke(decls: Collection<Token>): Expression {
-                val exprTokens = ArrayDeque<Token>()
-                exprTokens.addAll(decls)
-                return ParseExpression(exprTokens).parseExpression()
-            }
-        }
-
-
-        private fun parseExpression(): Expression {
-            val terms = mutableListOf<Term>()
-            do {
-                if(exprTokens.isNotEmpty() && exprTokens.first().type == TokenType.PIPE)
-                    exprTokens.removeFirst()
-                terms.add(parseTerm())
-            } while (exprTokens.isNotEmpty() && exprTokens.first().type == TokenType.PIPE)
-
-            return terms
-        }
-
-        private fun parseTerm(): Term {
-            val factors = mutableListOf<Factor>()
-
-            do {
-                factors.add(parseFactor())
-            }while(exprTokens.isNotEmpty() && maybeNextIsFactor())
-
-            return factors
-        }
-
-        private fun maybeNextIsFactor(): Boolean {
-            return exprTokens.isNotEmpty() && exprTokens.first().type in listOf(
-                TokenType.IDENT,
-                TokenType.STRING,
-                TokenType.CHAR,
-                TokenType.PARENTHESIS_OPEN,
-                TokenType.BRACKET_OPEN,
-                TokenType.CURLY_BRACKET_OPEN,
-                TokenType.START_CODE
-            )
-        }
-
-        private fun parseFactor(): Factor {
-            return when(exprTokens.first().type) {
-                TokenType.IDENT,
-                TokenType.STRING,
-                TokenType.CHAR, -> parseSimpleFactor()
-                TokenType.PARENTHESIS_OPEN -> parseGroupedFactor()
-                TokenType.BRACKET_OPEN -> parseOptionalFactor()
-                TokenType.CURLY_BRACKET_OPEN -> parseRepeatFactor()
-                TokenType.START_CODE -> parseSemActionFactor()
-                else -> {
-                    error("error -> $exprTokens")
-                }
-            }
-        }
-
-        private fun parseSimpleFactor(): Factor.Simple {
-            check(exprTokens.first().type in listOf(TokenType.IDENT, TokenType.STRING, TokenType.CHAR,))
-
-            val ident = parseSymbol()
-
-            val attrs = if(exprTokens.isNotEmpty() && exprTokens.first().type == TokenType.START_ATTR)
-                parseAttr()
-            else
-                null
-
-            return Factor.Simple(ident, attrs)
-        }
-
-        private fun parseSymbol(): Symbol {
-            check(exprTokens.first().type in listOf(TokenType.IDENT, TokenType.STRING, TokenType.CHAR,))
-            val token = exprTokens.removeFirst()
-            return when(token.type) {
-                TokenType.STRING, TokenType.CHAR -> Symbol.Literal(token.lexeme.trim('"', '\''))
-                TokenType.IDENT -> Symbol.Ident(token.lexeme)
-                else -> error("unrecognized symbol!")
-            }
-
-        }
-
-        private fun parseAttr(): String {
-            check(exprTokens.first().type == TokenType.START_ATTR)
-
-            exprTokens.removeFirst() // ignore <.
-
-            val attr = mutableListOf<Token>()
-
-            while(exprTokens.first().type != TokenType.END_ATTR) {
-                attr.add(exprTokens.removeFirst())
-            }
-
-            exprTokens.removeFirst() // ignore .>
-
-            return attr.joinToString(separator = "") { it.lexeme }
-        }
-
-        private fun parseGroupedFactor(): Factor.Grouped {
-            check(exprTokens.first().type == TokenType.PARENTHESIS_OPEN)
-
-            exprTokens.removeFirst() // ignore )
-
-            val closeParIndex = findIndexOfClosing(TokenType.PARENTHESIS_OPEN, TokenType.PARENTHESIS_CLOSE)
-
-            check(closeParIndex != -1)
-
-            val subExpr = exprTokens.slice(0 until closeParIndex).toMutableList()
-
-            repeat(subExpr.size) { exprTokens.removeFirst() }
-
-            subExpr.removeLast()
-
-            val subRes = ParseExpression(subExpr)
-
-            return Factor.Grouped(subRes)
-        }
-
-        private fun parseOptionalFactor(): Factor.Optional {
-            check(exprTokens.first().type == TokenType.BRACKET_OPEN)
-
-            exprTokens.removeFirst() // ignore [
-
-            val closeParIndex = findIndexOfClosing(TokenType.BRACKET_OPEN, TokenType.BRACKET_CLOSE)
-
-            check(closeParIndex != -1)
-
-            val subExpr = exprTokens.slice(0 until closeParIndex).toMutableList()
-
-            repeat(subExpr.size) { exprTokens.removeFirst() }
-
-            subExpr.removeLast()
-
-            return Factor.Optional(ParseExpression(subExpr))
-        }
-
-        private fun parseRepeatFactor(): Factor.Repeat {
-            check(exprTokens.first().type == TokenType.CURLY_BRACKET_OPEN)
-
-            exprTokens.removeFirst() // ignore {
-
-            val closeParIndex = findIndexOfClosing(TokenType.CURLY_BRACKET_OPEN, TokenType.CURLY_BRACKET_CLOSE)
-
-            check(closeParIndex != -1)
-
-            val subExpr = exprTokens.slice(0 until closeParIndex).toMutableList()
-
-            repeat(subExpr.size) { exprTokens.removeFirst() }
-
-            subExpr.removeLast()
-
-            return Factor.Repeat(ParseExpression(subExpr))
-        }
-
-        private fun parseSemActionFactor(): Factor.SemAction {
-            check(exprTokens.first().type == TokenType.START_CODE)
-
-            exprTokens.removeFirst() // ignore (.
-
-            val code = mutableListOf<Token>()
-            while(exprTokens.first().type != TokenType.END_CODE) {
-                code.add(exprTokens.removeFirst())
-            }
-
-            exprTokens.removeFirst() // ignore .)
-
-            return Factor.SemAction(code.joinToString(separator = ""){ it.lexeme })
-
-        }
-
-        private fun findIndexOfClosing(open: TokenType, close: TokenType): Int {
-            var openCount = 1
-            var closeCount = 0
-            for(index in 0..exprTokens.size) {
-                if(openCount == closeCount)
-                    return index
-                if(exprTokens[index].type == open)
-                    openCount++
-                if (exprTokens[index].type == close)
-                    closeCount++
-            }
-            return -1
-        }
-
-    }
-
     private fun parseCodeBlocks(): List<String> = codeBlocks.map { it.lexeme }
 
     private fun aggregateSet(all: Collection<Token>): String {
@@ -531,21 +331,21 @@ class ATGParser(
 
         for(token in all) {
             when {
-                token.type == TokenType.PLUS -> { currOp = "+"; continue }
-                token.type == TokenType.MINUS -> { currOp = "-"; continue }
+                token.type == ATGTokenType.PLUS -> { currOp = "+"; continue }
+                token.type == ATGTokenType.MINUS -> { currOp = "-"; continue }
                 currOp == null -> {
-                    acc = if(token.type == TokenType.IDENT)
+                    acc = if(token.type == ATGTokenType.IDENT)
                         charsLookup[token.lexeme]?.def ?: ""
                     else parseSingleTokenAsRegex(token)!!
                 }
                 currOp == "+" -> {
-                    val operand = if(token.type == TokenType.IDENT)
+                    val operand = if(token.type == ATGTokenType.IDENT)
                         charsLookup[token.lexeme]?.def ?: ""
                     else parseSingleTokenAsRegex(token)!!
                     acc = (acc.toList() + operand.toList()).joinToString(separator = "")
                 }
                 currOp == "-" -> {
-                    val operand = if(token.type == TokenType.IDENT)
+                    val operand = if(token.type == ATGTokenType.IDENT)
                         charsLookup[token.lexeme]?.def ?: ""
                     else parseSingleTokenAsRegex(token)!!
                     acc = (acc.toList() - operand.toList()).joinToString(separator = "")
@@ -561,7 +361,7 @@ class ATGParser(
     }
 
     private fun parseTokenDecl(tokenDecl: TokenDecl): TokenDef {
-        check(tokenDecl.ident.type == TokenType.IDENT)
+        check(tokenDecl.ident.type == ATGTokenType.IDENT)
         check(tokenDecl.def.isNotEmpty())
 
         val id = tokenDecl.ident.lexeme
@@ -583,25 +383,25 @@ class ATGParser(
 
     private fun parseSingleTokenAsRegex(token: Token): String? {
         return when(token.type) {
-            TokenType.STRING -> extractString(token).map { Regex.escape(it.toString()) }.joinToString(separator = "")
-            TokenType.CHAR -> extractChar(token)
-            TokenType.CHAR_NUMBER -> extractCharNumber(token)
-            TokenType.CHAR_NUMBER_INTERVAL, TokenType.CHAR_INTERVAL -> extractCharInterval(token)
-            TokenType.IDENT -> charsLookup[token.lexeme]?.asRegexExpression() ?: tokenLookup[token.lexeme]?.regex ?: ""
-            TokenType.PARENTHESIS_OPEN -> "("
-            TokenType.PARENTHESIS_CLOSE -> ")"
-            TokenType.CURLY_BRACKET_OPEN -> "("
-            TokenType.CURLY_BRACKET_CLOSE -> ")*"
-            TokenType.BRACKET_OPEN -> "("
-            TokenType.BRACKET_CLOSE -> ")?"
-            TokenType.PIPE -> "|"
-            TokenType.EXCEPT, TokenType.KEYWORDS -> null
+            ATGTokenType.STRING -> extractString(token).map { Regex.escape(it.toString()) }.joinToString(separator = "")
+            ATGTokenType.CHAR -> extractChar(token)
+            ATGTokenType.CHAR_NUMBER -> extractCharNumber(token)
+            ATGTokenType.CHAR_NUMBER_INTERVAL, ATGTokenType.CHAR_INTERVAL -> extractCharInterval(token)
+            ATGTokenType.IDENT -> charsLookup[token.lexeme]?.asRegexExpression() ?: tokenLookup[token.lexeme]?.regex ?: ""
+            ATGTokenType.PARENTHESIS_OPEN -> "("
+            ATGTokenType.PARENTHESIS_CLOSE -> ")"
+            ATGTokenType.CURLY_BRACKET_OPEN -> "("
+            ATGTokenType.CURLY_BRACKET_CLOSE -> ")*"
+            ATGTokenType.BRACKET_OPEN -> "("
+            ATGTokenType.BRACKET_CLOSE -> ")?"
+            ATGTokenType.PIPE -> "|"
+            ATGTokenType.EXCEPT, ATGTokenType.KEYWORDS -> null
             else -> error("unsupported token=$token")
         }
     }
 
     private fun extractString(token: Token): String {
-        require(token.type == TokenType.STRING)
+        require(token.type == ATGTokenType.STRING)
         return token.lexeme //Replace initial and ending " and escaped characters
             .removePrefix("\"")
             .removeSuffix("\"")
@@ -609,7 +409,7 @@ class ATGParser(
     }
 
     private fun extractChar(token: Token): String {
-        require(token.type == TokenType.CHAR)
+        require(token.type == ATGTokenType.CHAR)
         return token.lexeme
             .removePrefix("'")
             .removeSuffix("'")
@@ -617,7 +417,7 @@ class ATGParser(
     }
 
     private fun extractCharNumber(token: Token): String {
-        require(token.type == TokenType.CHAR_NUMBER)
+        require(token.type == ATGTokenType.CHAR_NUMBER)
 
         return token.lexeme
             .removePrefix("CHR(")
@@ -628,9 +428,9 @@ class ATGParser(
     }
 
     private fun extractCharInterval(token: Token): String {
-        require(token.type in listOf(TokenType.CHAR_NUMBER_INTERVAL, TokenType.CHAR_INTERVAL))
+        require(token.type in listOf(ATGTokenType.CHAR_NUMBER_INTERVAL, ATGTokenType.CHAR_INTERVAL))
 
-        val trim: (String) -> Int = if(token.type == TokenType.CHAR_NUMBER_INTERVAL) {
+        val trim: (String) -> Int = if(token.type == ATGTokenType.CHAR_NUMBER_INTERVAL) {
             { str: String -> str.removePrefix("CHR(").removeSuffix(")").toInt() }
         } else {
             { str: String -> str.replace("'", "").replace("/", "").first().toInt() }
