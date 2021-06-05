@@ -47,6 +47,22 @@ data class Production(
     val expression: Expression
 )
 
+fun Factor.isIndependent(atg: ATG): Boolean = when(this) {
+    is Factor.Symbol -> if(symbol is SymbolType.Ident) atg.isKnownToken(symbol as SymbolType.Ident) else false
+    is Factor.Grouped -> expr.isIndependent(atg)
+    is Factor.Repeat -> expr.isIndependent(atg)
+    is Factor.Optional -> expr.isIndependent(atg)
+    is Factor.SemAction -> true
+    else -> false
+}
+
+@JvmName("termIsIndependent")
+fun Term.isIndependent(atg: ATG): Boolean = factors.all { it.isIndependent(atg) }
+
+fun Expression.isIndependent(atg: ATG): Boolean = expr.all { it.isIndependent(atg) }
+
+fun Production.isIndependent(atg: ATG): Boolean = expression.isIndependent(atg)
+
 data class ATG(
     val compilerName: String,
     val characters: Collection<Character>,
@@ -59,6 +75,12 @@ data class ATG(
     internal val knownTokens by lazy {
         characters.map { it.name } + tokens.map { it.name } + keywords.map { it.name }
     }
+
+    internal val independentProductions by lazy { productions.filter { it.isIndependent(this) } }
 }
 
 fun ATG.isKnownToken(symbol: SymbolType.Ident): Boolean = symbol.name in knownTokens
+
+fun ATG.isIndependent(symbol: SymbolType.Ident): Boolean {
+    return symbol.name in independentProductions.map { it.name }
+}

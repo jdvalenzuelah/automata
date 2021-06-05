@@ -38,7 +38,7 @@ $ tar -xf build/distributions/kotlin-based-compiler-1.0.0.tar
 
 run passing spec atg file and destination path
 ```sh
-$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler .examples/atgs/HexNumber.ATG kotlin/org/github/compiler/generated
+$ ./kotlin-based-compiler-1.0.0/bin/kotlin-based-compiler .examples/atgs/KotlinHexNumber.ATG kotlin/org/github/compiler/generated
 ```
 
 the generated code will include the kotlin specification of the atg file ro be used by the scanner.

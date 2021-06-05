@@ -5,12 +5,13 @@ import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.github.compiler.atg.ATG
 import org.github.compiler.atg.Character
+import org.github.compiler.atg.scanner.streams.Stream
 import org.github.compiler.atg.specification.Spec
+import org.github.compiler.atg.specification.TokenRef
 import org.github.compiler.atg.specification.TokenType
 import org.github.compiler.regularExpressions.regexImpl.StatefulRegex
 import org.github.compiler.regularExpressions.transforms.Transform
 
-//TODO: Fix generated regexss
 object SpecGenerator : Transform<ATG, FileSpec> {
 
     private fun CodeBlock.Builder.encodeMap(k1: String, k2: Character) {
@@ -18,7 +19,7 @@ object SpecGenerator : Transform<ATG, FileSpec> {
 
         if(regex.any { it.toInt() < 21 }) {
             val list = regex.toList().joinToString(separator = ",") { "${it.toInt()}" }
-            val code = "listOf(" + list + ").joinToString(separator = \"\"){ it.toChar().toString() }.toStatefulRegex()"
+            val code = "listOf($list).joinToString(separator = \"\"){ it.toChar().toString() }.toStatefulRegex()"
             addStatement("$k1 to $code,")
         } else {
             addStatement("$k1 to %S.toStatefulRegex(),", regex)
@@ -37,7 +38,7 @@ object SpecGenerator : Transform<ATG, FileSpec> {
         return initCode.build()
     }
 
-    private fun FileSpec.Builder.inferCustomTypes(atg: ATG): FileSpec.Builder = apply {
+    private fun TypeSpec.Builder.inferCustomTypes(atg: ATG): TypeSpec.Builder = apply {
         atg.code.forEach { codeBlock ->
             if(codeBlock.maybeIsType()) {
                 addType(codeBlock.buildType())
@@ -181,28 +182,38 @@ object SpecGenerator : Transform<ATG, FileSpec> {
             .addStatement("return keywordsMap")
             .build()
 
+        val parser = ParserGenerator().invoke(atg)
+
+        val parseFunction = FunSpec.builder("parse")
+            .addParameter("source", Stream::class.parameterizedBy(TokenRef::class))
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("${atg.parserName()}(source).parse()")
+            .build()
+
         val spec = TypeSpec.objectBuilder(specName)
             .addSuperinterface(Spec::class)
             .addInitializerBlock(getInitCode(atg))
             .addType(tokenTypeEnum)
+            .addType(parser)
+            .inferCustomTypes(atg)
             .addProperty(patternsMap)
             .addProperty(keywordsMap)
             .addProperty(ignoreSet)
             .addFunction(allPatterns)
             .addFunction(getKeyword)
             .addFunction(ignore)
+            .addFunction(parseFunction)
             .build()
 
         val mainFunction = FunSpec.builder("main")
             .addParameter("args", Array::class.asClassName().parameterizedBy(String::class.asTypeName()))
-            .addStatement("ScannerMain($specName).main(args)")
+            .addStatement("ParserGeneratorMain($specName).main(args)")
             .build()
 
         return FileSpec.builder("org.github.compiler.generated", specName)
             .addImport("org.github.compiler.regularExpressions.regexImpl", "toStatefulRegex")
-            .addImport("org.github.compiler.ui.cli.scannerGenerator", "ScannerMain")
+            .addImport("org.github.compiler.ui.cli.scannerGenerator", "ParserGeneratorMain")
             .addType(spec)
-            .inferCustomTypes(atg)
             .addFunction(mainFunction)
             .build()
     }

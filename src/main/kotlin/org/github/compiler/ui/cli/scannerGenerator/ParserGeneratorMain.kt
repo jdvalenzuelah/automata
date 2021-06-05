@@ -5,7 +5,7 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.types.file
 import org.github.compiler.atg.specification.Spec
 
-class ScannerMain(
+class ParserGeneratorMain(
     private val scannerSpecification: Spec
 ) : CliktCommand() {
 
@@ -13,15 +13,8 @@ class ScannerMain(
         .file(mustExist = true)
 
     override fun run() {
-        println("scanning file ${fileToScan.name}")
+        echo("Starting file parsing ${fileToScan.name}")
         val tokens = scannerSpecification.getScanner(fileToScan.readText())
-            .scanTokens()
-
-        println("found ${tokens.size} tokens")
-
-        println("tokens found")
-        tokens.forEach {
-            println("tipo: ${it.type} valor: ${it.lexeme}")
-        }
+        scannerSpecification.parse(tokens)
     }
 }
