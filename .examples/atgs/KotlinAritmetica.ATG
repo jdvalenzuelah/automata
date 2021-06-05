@@ -1,0 +1,54 @@
+COMPILER Aritmetica
+
+(.data class Wrapper ( var value : Int ).)
+
+CHARACTERS
+
+letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
+digit = "0123456789" .
+tab = CHR(9).
+eol = CHR(10).
+
+KEYWORDS
+
+while = "while".
+do = "do".
+if = "if".
+switch = "switch".
+
+TOKENS
+
+ident = letter{letter|digit} EXCEPT KEYWORDS.
+number = digit{digit}.
+
+
+PRODUCTIONS
+
+Expr= {Stat"|"}.
+
+Stat (.val wrapper = Wrapper(0);.) =
+	Expression<.wrapper.>		(.println("Resultado: ${wrapper.value}");.)
+	.
+
+Expression<.result : Wrapper.> (.val result1 = Wrapper(0); val result2 = Wrapper(0);.) =
+    [ident						(.println("this is the content of the ident: ${lastToken!!.lexeme}");.)
+        ]
+	Term<.result1.>
+	{    "+"Term<.result2.>		(.result1.value += result2.value;.)
+	   | "-"Term<.result2.>		(.result1.value -= result2.value;.)
+	}								(.result.value = result1.value;.)
+	.
+
+Term<.result : Wrapper.> (.val result1 = Wrapper(0); val result2 = Wrapper(0);.) =
+	Factor<.result1.>
+	{    "*"Factor<.result2.>	(.result1.value *= result2.value;.)
+	   | "/"Factor<.result2.>	(.result1.value /= result2.value;.)
+	}							(.result.value = result1.value;.)
+	.
+
+
+Factor<.result : Wrapper.> = (Number<.result.>|"("Expression<.result.>")").
+
+Number<.result : Wrapper.> = number (.result.value = lastToken!!.lexeme.toInt();.).
+
+END Aritmetica
